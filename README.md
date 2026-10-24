@@ -4,21 +4,25 @@ Vokabeltrainer Französisch–Deutsch für *Cornelsen À plus! 3* (Neubearbeitun
 
 ## Was die App macht
 
-Drei Abfragerichtungen, jede ist eine eigene Karte mit eigenem Lernstand:
+Die Lernerin wählt eine **Lerneinheit**: Unité → Abschnitt (Auftaktseite, Vocabulaire thématique, Volet 1, Volet 2 oder alle) → Lerntag. Ein Abschnitt wird in Lerntage zu etwa 8–10 Wörtern geteilt; bei „alle Abschnitte“ gilt die Lerntag-Einteilung der Masterliste. Der Ring oben zählt, wie viele Wörter des Lerntags in allen Wortrichtungen „gesammelt“ sind.
 
-| Richtung | Was passiert |
+Dann wählt sie eine Übung und arbeitet den Lerntag als Runde durch; Fehler kommen in derselben Runde noch bis zu zweimal wieder, danach bietet „Nur die Fehler nochmal“ eine kurze Extrarunde:
+
+| Übung | Was passiert |
 |---|---|
 | Deutsch → Französisch | deutsche Bedeutung sehen, französisch **tippen** |
 | Französisch → Deutsch | französisch sehen, aufdecken, selbst mit ✓/✗ bewerten |
-| Lautschrift → Schreibweise | Standard-IPA sehen, französisch **tippen** (nur Einträge mit IPA, keine Eigennamen) |
+| Lautschrift → Französisch | Standard-IPA sehen, französisch **tippen** (nur Einträge mit IPA, keine Eigennamen) |
+| Sätze: Deutsch → Französisch | Beispielsatz übersetzen, **tippen**, Vergleich mit der Musterlösung |
+| Sätze: Französisch → Deutsch | Beispielsatz übersetzen, aufdecken, selbst bewerten |
+| Fehlerliste | alle Wörter der Unité, deren letzte Antwort falsch war |
+| Wiederholung fällig | alle Karten über alle Unités, deren Leitner-Frist abgelaufen ist |
 
-Nach jeder Antwort erscheinen Wort, Bedeutung, Lautschrift und Beispielsatz.
+Nach jeder Antwort erscheinen Wort, Bedeutung, Lautschrift und beide Beispielsätze. Am Anfang jeder Runde steht einer der zehn Lerntipps; alle zehn mit Begründung und Literatur stehen unter *Lerntipps*.
 
-Getippte Antworten werden gegen `fr_accept` geprüft. Fehlende oder falsche Akzente, Groß-/Kleinschreibung und Leerzeichen um Apostrophe gelten als **fast richtig** (Karte bleibt auf ihrer Stufe, kommt bald wieder). Fehlender oder falscher Artikel bei Substantiven ist ein **Fehler**. Ein Zeichen-Diff zeigt, was abweicht.
+Getippte Antworten werden gegen `fr_accept` geprüft. Fehlende oder falsche Akzente, Groß-/Kleinschreibung und Leerzeichen um Apostrophe gelten als **fast richtig**; fehlender oder falscher Artikel bei Substantiven ist ein **Fehler**. Ein Zeichen-Diff zeigt, was abweicht.
 
-Unter *Einstellungen → Unités* lässt sich eingrenzen, welche Unités gerade aktiv sind; der Lernstand der anderen bleibt liegen.
-
-Lernplan: Neue Wörter werden in Buchreihenfolge (`unit`, dann `order`) freigeschaltet, standardmäßig acht pro Tag. Wiederholungen folgen Leitner-Stufen 0 → sofort, 1 → 1 Tag, 2 → 3 Tage, 3 → 7, 4 → 14, 5 → 30 Tage. Richtig = eine Stufe hoch, falsch = zurück auf 0 und noch einmal in derselben Session.
+Jede richtige Antwort hebt die Karte eine Leitner-Stufe (0 → sofort, 1 → 1 Tag, 2 → 3 Tage, 3 → 7, 4 → 14, 5 → 30 Tage); ein Fehler setzt sie auf 0 und auf die Fehlerliste.
 
 ## Dateien
 
@@ -32,7 +36,7 @@ Lernplan: Neue Wörter werden in Buchreihenfolge (`unit`, dann `order`) freigesc
 | `pos_overrides.json` | Wortart und Genus je ID, redaktionell gesetzt – bitte prüfen |
 | `sections_from_master.json` | Abschnitt je ID aus der Masterliste (für Unité 1 nötig) |
 | `validate_vocab.py` | prüft eine `vocab.json` gegen den Vertrag |
-| `tests_smoke.py` | Browser-Test, spielt eine Session mit den Beispieldaten durch |
+| `tests_smoke.py` | Browser-Test, spielt Auswahl, Lerntage, alle Übungen und Reload durch |
 
 ## Benutzen
 

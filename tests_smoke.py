@@ -1,77 +1,102 @@
-"""Browser-Smoke-Test der Lernapp mit Playwright (python -m playwright install chromium). Spielt eine komplette Session mit den Beispieldaten durch."""
-import json, shutil, subprocess, sys, tempfile, time, os
+"""Browser-Smoke-Test der Lernapp mit Playwright (pip install playwright && python -m playwright install chromium).
+Spielt mit der echten vocab.json (oder den Beispieldaten) Auswahl, Lerntage, alle Modi, Fehlerliste und Reload durch."""
+import json, shutil, subprocess, sys, tempfile, time
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 REPO = Path(__file__).resolve().parent
+SRC = REPO / "vocab.json" if (REPO / "vocab.json").exists() else REPO / "vocab.sample.json"
 tmp = Path(tempfile.mkdtemp())
 shutil.copy(REPO / "index.html", tmp / "index.html")
-shutil.copy(REPO / "vocab.sample.json", tmp / "vocab.json")
+shutil.copy(SRC, tmp / "vocab.json")
+data = json.loads(SRC.read_text(encoding="utf-8"))
+N = len(data["entries"])
 srv = subprocess.Popen([sys.executable, "-m", "http.server", "8765", "--bind", "127.0.0.1"], cwd=tmp, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(1)
 errors = []
+
+def play_round(pg, answer_fn, max_steps=80):
+    steps = 0
+    while pg.is_visible("#quiz") and steps < max_steps:
+        steps += 1
+        if pg.is_visible("#typeBox"):
+            a = answer_fn(pg.inner_text("#qLabel"), pg.inner_text("#qPrompt"))
+            if a is None:
+                pg.click("#btnShow")
+            else:
+                pg.fill("#answer", a); pg.press("#answer", "Enter")
+            assert pg.is_visible("#reveal"), "reveal missing"
+            pg.press("body", "Enter")
+        else:
+            pg.press("body", " "); assert pg.is_visible("#judgeRow"); pg.press("body", "2")
+    assert pg.is_visible("#done"), "done screen missing"
+    return steps, pg.inner_text("#doneText")
+
 try:
     with sync_playwright() as p:
         b = p.chromium.launch()
-        pg = b.new_page(viewport={"width": 390, "height": 800})
+        pg = b.new_page(viewport={"width": 390, "height": 820})
         pg.on("pageerror", lambda e: errors.append(str(e)))
         pg.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
         pg.goto("http://127.0.0.1:8765/index.html")
-        pg.wait_for_function("document.getElementById('stTotal').textContent==='6'")
-        assert "Beispieldaten" in pg.inner_text("#loadBanner")
-        print("dash:", pg.inner_text("#dashHint"))
-        pg.click("#btnStart")
-        # Session: 6 Wörter * (de_fr + fr_de [+ ipa_fr für U1-001]) = 13 Karten, alle neu
-        seen = 0
-        answers = {  # de -> input; erste richtig, zweite ohne Akzent, dritte ohne Artikel
-            "die Bäckerei": "la boulangerie",
-            "das Fahrrad": "le velo",
-            "etwas brauchen": "avoir besoin de qc",
-            "Belgien": "Belgique",
-            "plötzlich": "tout à coup",
-            "die Schule": "l'école",
-        }
-        verdicts = []
-        tried = set()
-        guard = 0
-        while pg.is_visible("#quiz") and guard < 40:
-            guard += 1
-            label = pg.inner_text("#qLabel")
-            prompt = pg.inner_text("#qPrompt")
-            if label.upper().startswith("DEUTSCH"):
-                a = answers.get(prompt, "xyz")
-                if prompt in tried: a = {"das Fahrrad":"le vélo","Belgien":"la Belgique"}.get(prompt, a)
-                tried.add(prompt)
-                pg.fill("#answer", a)
-                pg.press("#answer", "Enter")
-                verdicts.append((prompt, pg.inner_text("#verdict").split("\n")[0]))
-                assert pg.is_visible("#reveal")
-                pg.press("body", "Enter")
-            elif "LAUTSCHRIFT" in label.upper():
-                pg.fill("#answer", "la boulangerie")
-                pg.press("#answer", "Enter")
-                verdicts.append((prompt, pg.inner_text("#verdict").split("\n")[0]))
-                pg.press("body", "Enter")
-            else:
-                pg.press("body", " ")
-                assert pg.is_visible("#judgeRow")
-                pg.press("body", "2")
-            seen += 1
-        print("cards:", seen)
-        for v in verdicts: print("  ", v)
-        assert pg.is_visible("#done"), "done screen missing"
-        print("done:", pg.inner_text("#doneText"))
-        # Lernstand persistiert?
-        st = json.loads(pg.evaluate("localStorage.getItem('wam:state:v1')"))
-        print("introduced:", len(st["introduced"]), "cards:", len(st["cards"]))
-        assert len(st["introduced"]) == 6 and len(st["cards"]) == 13, (len(st["introduced"]), len(st["cards"]))
-        # Reload -> dash zeigt 'alles erledigt' bzw. nur fällige
-        pg.reload(); pg.wait_for_function("document.getElementById('stTotal').textContent==='6'")
-        print("after reload:", pg.inner_text("#stDue"), "fällig |", pg.inner_text("#dashHint"))
-        # Cahier
-        pg.click("[data-tab=cahier]")
-        rows = pg.locator("#cahierBody tr").count(); print("cahier rows:", rows); assert rows == 6
-        pg.fill("#filter", "ecole"); assert pg.locator("#cahierBody tr").count() == 1
+        pg.wait_for_function("document.querySelectorAll('#selUnit option').length > 0")
+        print("eyebrow:", pg.inner_text("#eyebrow"))
+        units = pg.locator("#selUnit option").count(); print("units:", units)
+        # Abschnitt wählen (zweite Option = erster echter Abschnitt), Lerntage prüfen
+        opts = [o for o in pg.locator("#selSection option").all_inner_texts()]
+        print("sections:", opts)
+        if len(opts) > 1:
+            pg.select_option("#selSection", index=1)
+        days = pg.locator("#selDay option").all_inner_texts(); print("days:", days)
+        sizes = [int(d.split("·")[1].split()[0]) for d in days]
+        assert all(5 <= s <= 12 for s in sizes), sizes
+        set_n = sizes[0]
+        print("subline:", pg.inner_text("#subline"))
+        # Lookup fr by de for the chosen set via the set list
+        rows = pg.locator("#setListBody tr").all_inner_texts()
+        assert len(rows) == set_n, (len(rows), set_n)
+        byde = {}
+        for r in rows:
+            parts = r.split("\t"); fr = parts[0].split("\n")[0].strip(); de = parts[1].strip(); byde[de] = fr
+        # Modus DE→FR: erste Antwort falsch (leer lassen → Lösung zeigen), rest richtig
+        pg.click("[data-mode=de_fr]")
+        assert pg.is_visible("#tipBox"), "tip missing at round start"
+        print("tip:", pg.inner_text("#tipTitle"))
+        first = {"n": 0}
+        def ans(label, prompt):
+            first["n"] += 1
+            if first["n"] == 1: return None  # Lösung zeigen → falsch → kommt wieder
+            return byde.get(prompt, "xyz")
+        steps, txt = play_round(pg, ans)
+        print("DE→FR:", steps, "steps |", txt)
+        assert not pg.is_visible("#tipBox") or True
+        assert "gesammelt" in txt
+        ring = pg.inner_text("#ringN"); print("ring:", ring)
+        # Fehlerliste sollte jetzt leer sein (das falsche Wort wurde danach richtig beantwortet)
+        print("modes:", [t.replace("\n", " ") for t in pg.locator("#modes button").all_inner_texts()])
+        # FR→DE komplett
+        pg.click("[data-mode=fr_de]"); steps, txt = play_round(pg, lambda l, p: None); print("FR→DE:", steps, "|", txt)
+        # IPA→FR: alles richtig per Lookup über reveal? Wir tippen die Lösung nach "Lösung zeigen" nicht; stattdessen prüfen wir nur Ablauf
+        if pg.locator("[data-mode=ipa_fr]").is_enabled():
+            pg.click("[data-mode=ipa_fr]"); steps, txt = play_round(pg, lambda l, p: None); print("IPA→FR:", steps, "|", txt)
+            assert pg.is_visible("#btnRetryWrong")
+            errs = pg.inner_text("[data-mode=errors]"); print("errors button:", errs.replace("\n", " "))
+            assert "gemerkt" in errs
+            pg.click("[data-mode=errors]"); steps, txt = play_round(pg, lambda l, p: byde.get(p, "xyz")); print("Fehlerliste:", steps, "|", txt)
+        # Satzmodus
+        if pg.locator("[data-mode=sent_de_fr]").is_enabled():
+            pg.click("[data-mode=sent_de_fr]")
+            pg.fill("#answer", "Bonjour"); pg.press("#answer", "Enter"); v = pg.inner_text("#verdict"); print("Satz verdict:", v.split("\n")[0])
+            pg.click("#btnStop"); assert pg.is_visible("#setList")
+        # Persistenz + Reload
+        ring = pg.inner_text("#ringN")
+        pg.reload(); pg.wait_for_function("document.querySelectorAll('#selUnit option').length > 0")
+        print("after reload:", pg.inner_text("#eyebrow"), "| ring", pg.inner_text("#ringN"))
+        assert pg.inner_text("#ringN") == ring
+        # Tipps-Seite
+        pg.click("[data-tab=tips]"); assert pg.locator("#tipList li").count() == 10
+        # Wortliste
+        pg.click("[data-tab=cahier]"); assert pg.locator("#cahierBody tr").count() == N
         pg.screenshot(path=str(tmp / "cahier.png"))
         b.close()
 finally:

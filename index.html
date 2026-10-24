@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Words are magic</title>
-<meta name="description" content="Vokabeltrainer Französisch–Deutsch für À plus! 3 (Unité 1). Liest vocab.json, speichert den Lernstand im Browser.">
+<meta name="description" content="Vokabeltrainer Französisch–Deutsch für À plus! 3. Unité, Abschnitt und Lerntag wählen, drei Abfragerichtungen, Satzmodus, Fehlerliste. Liest vocab.json, speichert den Lernstand im Browser.">
 <style>
   :root{
     --bg:#f7f4ee; --paper:#fffdf8; --ink:#1f2328; --muted:#6b6f76; --line:#e2ddd3;
@@ -27,122 +27,140 @@
     --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
   }
   *{box-sizing:border-box}
+  [hidden]{display:none !important}
   html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
   body{min-height:100vh;display:flex;flex-direction:column}
-  header{padding:14px 16px 8px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  header h1{font-size:1.15rem;margin:0;letter-spacing:.2px}
-  header h1 small{color:var(--muted);font-weight:400;margin-left:8px;font-size:.85rem}
-  nav{display:flex;gap:6px;padding:0 16px 10px;overflow-x:auto;scrollbar-width:none}
-  nav::-webkit-scrollbar{display:none}
-  nav button{flex:0 0 auto;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer;font-size:.95rem}
-  nav button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-  main{flex:1;padding:0 16px 32px;max-width:720px;width:100%;margin:0 auto}
-  [hidden]{display:none !important}
-  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+  main{flex:1;padding:14px 16px 32px;max-width:760px;width:100%;margin:0 auto}
+  .muted{color:var(--muted)} .small{font-size:.85rem}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center} .grow{flex:1 1 auto}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px}
   .card + .card{margin-top:14px}
-  .muted{color:var(--muted)}
-  .small{font-size:.85rem}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .grow{flex:1 1 auto}
-  button.primary{background:var(--accent);color:var(--accent-ink);border:0;padding:10px 18px;border-radius:10px;font-size:1rem;cursor:pointer}
-  button.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);padding:9px 14px;border-radius:10px;cursor:pointer;font-size:.95rem}
+  h1{font-size:1.35rem;margin:0;letter-spacing:.2px}
+  h2{font-size:1.05rem;margin:0 0 8px}
+  .eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+  button{font:inherit}
+  button.primary{background:var(--accent);color:var(--accent-ink);border:0;padding:10px 18px;border-radius:10px;cursor:pointer}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);padding:9px 14px;border-radius:10px;cursor:pointer}
+  button.danger{color:var(--bad)}
   button:disabled{opacity:.5;cursor:default}
-  .prompt-label{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-  .prompt{font-size:1.75rem;margin:6px 0 14px;font-weight:600;overflow-wrap:anywhere}
-  .prompt.ipa{font-family:"Charis SIL","Doulos SIL","Gentium Plus","Noto Serif","DejaVu Serif",serif;font-weight:500}
-  .prompt .pos{font-size:.9rem;color:var(--muted);font-weight:400;margin-left:8px}
-  input[type=text]{width:100%;font-size:1.25rem;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);outline:none}
+  select{font:inherit;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);max-width:100%}
+  label.field{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted);min-width:140px;flex:1 1 160px}
+  label.field select{font-size:1rem;color:var(--ink)}
+  .head{display:flex;align-items:center;gap:14px;justify-content:space-between}
+  .ring{--p:0;width:78px;height:78px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+        background:conic-gradient(var(--accent) calc(var(--p)*1%), var(--line) 0);position:relative}
+  .ring::before{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--paper)}
+  .ring span{position:relative;text-align:center;line-height:1.1;font-size:.95rem;font-weight:700}
+  .ring span small{display:block;font-weight:400;font-size:.65rem;color:var(--muted)}
+  .modes{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .modes button{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:9px 14px;border-radius:999px;cursor:pointer;display:flex;gap:8px;align-items:center}
+  .modes button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .modes button .n{font-size:.75rem;padding:1px 7px;border-radius:999px;background:rgba(127,127,127,.18)}
+  .modes button.warn[aria-pressed="false"]:not(:disabled) .n{background:var(--badbg);color:var(--bad)}
+  .prompt-label{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .prompt{font-size:1.7rem;margin:6px 0 14px;font-weight:600;overflow-wrap:anywhere}
+  .prompt.sentence{font-size:1.3rem;font-weight:500}
+  .ipa,.prompt.ipa{font-family:"Charis SIL","Doulos SIL","Gentium Plus","Noto Serif","DejaVu Serif",serif}
+  .prompt.ipa{font-weight:500}
+  input[type=text]{width:100%;font-size:1.2rem;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);outline:none}
   input[type=text]:focus{border-color:var(--accent)}
   .accents{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
   .accents button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;min-width:38px;padding:6px 8px;font-size:1.05rem;cursor:pointer}
   .verdict{margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid transparent}
-  .verdict.ok{background:var(--okbg);border-color:var(--ok)}
-  .verdict.near{background:var(--nearbg);border-color:var(--near)}
-  .verdict.bad{background:var(--badbg);border-color:var(--bad)}
+  .verdict.ok{background:var(--okbg);border-color:var(--ok)} .verdict.near{background:var(--nearbg);border-color:var(--near)} .verdict.bad{background:var(--badbg);border-color:var(--bad)}
   .verdict b{display:block;margin-bottom:4px}
   .reveal{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
-  .reveal .fr{font-size:1.35rem;font-weight:600}
-  .reveal .ipa{font-family:"Charis SIL","Doulos SIL","Gentium Plus","Noto Serif","DejaVu Serif",serif;color:var(--muted);margin-left:8px}
-  .reveal .de{margin-top:2px}
-  .reveal .ex{margin-top:10px;padding-left:12px;border-left:3px solid var(--line)}
-  .reveal .ex .d{color:var(--muted);font-size:.95rem}
+  .reveal .fr{font-size:1.3rem;font-weight:600} .reveal .ipa{color:var(--muted);margin-left:8px}
+  .reveal .ex{margin-top:10px;padding-left:12px;border-left:3px solid var(--line)} .reveal .ex .d{color:var(--muted);font-size:.95rem}
   .diff{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.05rem}
-  .diff del{background:var(--badbg);text-decoration:line-through;color:var(--bad)}
-  .diff ins{background:var(--okbg);text-decoration:none;color:var(--ok)}
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
-  .stat{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-  .stat .n{font-size:1.5rem;font-weight:700}
-  .stat .l{font-size:.8rem;color:var(--muted)}
-  .progress{height:8px;background:var(--line);border-radius:999px;overflow:hidden;margin:8px 0}
-  .progress i{display:block;height:100%;background:var(--accent);width:0}
+  .diff del{background:var(--badbg);text-decoration:line-through;color:var(--bad)} .diff ins{background:var(--okbg);text-decoration:none;color:var(--ok)}
+  .progress{height:6px;background:var(--line);border-radius:999px;overflow:hidden;margin:8px 0 12px} .progress i{display:block;height:100%;background:var(--accent);width:0}
   table{width:100%;border-collapse:collapse;font-size:.95rem}
   th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
-  th{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-  td .ipa{font-family:"Charis SIL","Doulos SIL","Gentium Plus","Noto Serif","DejaVu Serif",serif;color:var(--muted);display:block;font-size:.9rem}
+  th{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  td .ipa{color:var(--muted);display:block;font-size:.9rem}
   .box{display:inline-block;min-width:22px;text-align:center;border-radius:6px;padding:0 6px;font-size:.8rem;background:var(--line)}
   .box.b0{background:var(--badbg);color:var(--bad)} .box.b1,.box.b2{background:var(--nearbg);color:var(--near)} .box.b3,.box.b4,.box.b5{background:var(--okbg);color:var(--ok)}
-  label.chk{display:flex;gap:8px;align-items:center;padding:6px 0}
-  .banner{padding:10px 14px;border-radius:10px;background:var(--nearbg);border:1px solid var(--near);margin-bottom:14px}
-  .banner.err{background:var(--badbg);border-color:var(--bad)}
+  .chip{display:inline-block;font-size:.75rem;padding:2px 8px;border-radius:999px;background:var(--line);margin-left:6px;vertical-align:middle}
+  .chip.err{background:var(--badbg);color:var(--bad)}
+  .tip{padding:10px 14px;border-radius:10px;background:var(--nearbg);border:1px solid var(--near);margin:0 0 14px}
+  .tip b{display:block;margin:2px 0}
+  .tip a{color:inherit}
+  #tipList li{margin:0 0 10px} #tipList li b{display:block}
+  .banner{padding:10px 14px;border-radius:10px;background:var(--nearbg);border:1px solid var(--near);margin-bottom:14px} .banner.err{background:var(--badbg);border-color:var(--bad)}
   kbd{font:.8rem ui-monospace,monospace;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px;background:var(--bg)}
-  .dirtag{font-size:.75rem;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--ink);margin-left:8px;vertical-align:middle}
+  label.chk{display:flex;gap:8px;align-items:center;padding:6px 0}
   details summary{cursor:pointer;color:var(--muted)}
-  textarea{width:100%;min-height:90px;font:.85rem ui-monospace,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
   footer{padding:10px 16px 20px;color:var(--muted);font-size:.8rem;text-align:center}
-  @media (max-width:420px){ .prompt{font-size:1.5rem} }
+  .tabs{display:flex;gap:6px;margin:0 0 12px;overflow-x:auto;scrollbar-width:none} .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:0 0 auto;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:7px 13px;border-radius:999px;cursor:pointer;font-size:.9rem}
+  .tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  @media (max-width:420px){ .prompt{font-size:1.45rem} .ring{width:66px;height:66px} }
 </style>
 </head>
 <body>
-<header>
-  <h1>Words are magic <small id="srcLabel"></small></h1>
-  <div class="small muted" id="dateLabel"></div>
-</header>
-<nav role="tablist" id="nav">
-  <button role="tab" data-tab="learn" aria-selected="true">Lernen</button>
-  <button role="tab" data-tab="cahier">Cahier</button>
-  <button role="tab" data-tab="settings">Einstellungen</button>
-</nav>
 <main>
   <div id="loadBanner" hidden></div>
 
-  <!-- ============ LERNEN ============ -->
+  <div class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="learn" aria-selected="true">Lernen</button>
+    <button role="tab" data-tab="cahier">Wortliste</button>
+    <button role="tab" data-tab="tips">Lerntipps</button>
+    <button role="tab" data-tab="settings">Einstellungen</button>
+  </div>
+
+  <!-- ================= LERNEN ================= -->
   <section id="tab-learn">
-    <div class="card" id="dash">
-      <div class="stats">
-        <div class="stat"><div class="n" id="stDue">–</div><div class="l">fällig</div></div>
-        <div class="stat"><div class="n" id="stNew">–</div><div class="l">neu heute</div></div>
-        <div class="stat"><div class="n" id="stKnown">–</div><div class="l">eingeführt</div></div>
-        <div class="stat"><div class="n" id="stTotal">–</div><div class="l">Wörter gesamt</div></div>
+    <div class="card">
+      <div class="head">
+        <div>
+          <div class="eyebrow" id="eyebrow">Französisch</div>
+          <h1>Wörter sammeln.</h1>
+          <div class="small muted" id="subline"></div>
+        </div>
+        <div class="ring" id="ring"><span><b id="ringN">0 / 0</b><small>gesammelt</small></span></div>
       </div>
-      <div class="progress"><i id="progBar"></i></div>
-      <div class="row" style="margin-top:12px">
-        <button class="primary" id="btnStart">Session starten</button>
-        <span class="small muted" id="dashHint"></span>
+      <div class="row" style="margin-top:14px">
+        <label class="field">Lerneinheit<select id="selUnit"></select></label>
+        <label class="field">Abschnitt<select id="selSection"></select></label>
+        <label class="field">Lerntag<select id="selDay"></select></label>
+      </div>
+      <div class="small muted" style="margin-top:8px" id="scopeInfo"></div>
+      <div class="modes" id="modes">
+        <button data-mode="de_fr" aria-pressed="false">Deutsch → Französisch <span class="n"></span></button>
+        <button data-mode="fr_de" aria-pressed="false">Französisch → Deutsch <span class="n"></span></button>
+        <button data-mode="ipa_fr" aria-pressed="false">Lautschrift → Französisch <span class="n"></span></button>
+        <button data-mode="sent_de_fr" aria-pressed="false">Sätze: Deutsch → Französisch <span class="n"></span></button>
+        <button data-mode="sent_fr_de" aria-pressed="false">Sätze: Französisch → Deutsch <span class="n"></span></button>
+        <button data-mode="errors" aria-pressed="false" class="warn">Fehlerliste <span class="n"></span></button>
+        <button data-mode="review" aria-pressed="false">Wiederholung fällig <span class="n"></span></button>
       </div>
     </div>
 
     <div class="card" id="quiz" hidden>
       <div class="row">
         <span class="small muted grow" id="qCounter"></span>
-        <button class="ghost small" id="btnStop">Session beenden</button>
+        <span class="small muted" id="qRight"></span>
+        <button class="ghost small" id="btnStop">Abbrechen</button>
       </div>
+      <div class="progress"><i id="qBar"></i></div>
+      <div class="tip" id="tipBox" hidden><span class="eyebrow">Tipp <span id="tipNo"></span></span><b id="tipTitle"></b><div class="small muted" id="tipWhy"></div></div>
       <div class="prompt-label" id="qLabel"></div>
       <div class="prompt" id="qPrompt"></div>
+      <div class="small muted" id="qHint" hidden></div>
 
       <div id="typeBox">
-        <input type="text" id="answer" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Französisch eintippen …" aria-label="Antwort">
+        <input type="text" id="answer" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Auf Französisch eintippen …" aria-label="Antwort">
         <div class="accents" id="accents"></div>
         <div class="row" style="margin-top:8px">
-          <button class="primary" id="btnCheck">Prüfen</button>
-          <button class="ghost" id="btnShow">Zeigen</button>
-          <span class="small muted">Enter = prüfen · Enter nochmal = weiter</span>
+          <button class="primary" id="btnCheck">Prüfen ↵</button>
+          <button class="ghost" id="btnShow">Lösung zeigen</button>
         </div>
       </div>
-
       <div id="revealBox">
         <div class="row" style="margin-top:4px">
           <button class="primary" id="btnFlip">Aufdecken</button>
-          <span class="small muted">Leertaste = aufdecken</span>
+          <span class="small muted">Leertaste</span>
         </div>
       </div>
 
@@ -155,59 +173,94 @@
         <span class="small muted"><kbd>1</kbd> falsch · <kbd>2</kbd> gewusst</span>
       </div>
       <div class="row" id="nextRow" hidden style="margin-top:12px">
-        <button class="primary" id="btnNext">Weiter</button>
+        <button class="primary" id="btnNext">Weiter ↵</button>
       </div>
     </div>
 
     <div class="card" id="done" hidden>
-      <h2 style="margin:0 0 6px">Session fertig</h2>
+      <h2>Runde fertig</h2>
       <div id="doneText"></div>
-      <div class="row" style="margin-top:12px"><button class="primary" id="btnAgain">Nochmal</button></div>
+      <div class="row" style="margin-top:12px">
+        <button class="primary" id="btnRetryWrong" hidden>Nur die Fehler nochmal</button>
+        <button class="ghost" id="btnNewRound">Neue Runde</button>
+      </div>
+    </div>
+
+    <div class="card" id="setList" hidden>
+      <h2 id="setListTitle"></h2>
+      <table><thead><tr><th>Französisch</th><th>Deutsch</th><th>Stand</th></tr></thead><tbody id="setListBody"></tbody></table>
     </div>
   </section>
 
-  <!-- ============ CAHIER ============ -->
+  <!-- ================= WORTLISTE ================= -->
   <section id="tab-cahier" hidden>
     <div class="card">
       <div class="row">
-        <input type="text" id="filter" placeholder="Suchen … (fr, de, Tag)" style="font-size:1rem;flex:1">
-        <label class="chk small"><input type="checkbox" id="onlyIntro"> nur eingeführte</label>
+        <input type="text" id="filter" placeholder="Suchen … (fr, de)" style="font-size:1rem;flex:1">
+        <label class="chk small"><input type="checkbox" id="onlyErrors"> nur Fehlerliste</label>
       </div>
       <div class="small muted" style="margin-top:6px" id="cahierCount"></div>
       <table style="margin-top:8px">
-        <thead><tr><th>Französisch</th><th>Deutsch</th><th>Beispiel</th><th>Stand</th></tr></thead>
+        <thead><tr><th>Französisch</th><th>Deutsch</th><th>Beispiele</th><th>Stand</th></tr></thead>
         <tbody id="cahierBody"></tbody>
       </table>
     </div>
   </section>
 
-  <!-- ============ EINSTELLUNGEN ============ -->
+  <!-- ================= LERNTIPPS ================= -->
+  <section id="tab-tips" hidden>
+    <div class="card">
+      <h2>Die zehn Regeln</h2>
+      <p class="small muted" style="margin:0 0 10px">Kurz gehalten; hinter jeder Regel steht in einem Satz, warum sie funktioniert. Die Begründungen stammen aus der Lernforschung.</p>
+      <ol id="tipList" style="padding-left:20px;margin:0"></ol>
+    </div>
+    <div class="card">
+      <h2>Vor dem Vokabeltest</h2>
+      <p style="margin:0">Gehe die Fehlerliste der aktuellen Unité durch, nicht die ganze Liste. Keine Nachtschicht am Vorabend: Die täglichen Minuten der letzten Wochen sind deine Vorbereitung.</p>
+    </div>
+    <div class="card">
+      <h2>Kurzfassung für den Schreibtisch</h2>
+      <p style="margin:0">Jeden Tag kurz. Erst wiederholen, dann Neues. Erst antworten, dann aufdecken. Deutsch → Französisch tippen. Satz laut lesen. Nichts selbst aussortieren.</p>
+    </div>
+    <div class="card">
+      <h2>Woher kommen diese Regeln?</h2>
+      <p class="small" style="margin:0 0 8px">Testeffekt (aktives Abrufen schlägt erneutes Lesen) und Spacing-Effekt (verteiltes Lernen schlägt geblocktes Lernen). Dass Selbsteinschätzung beim Aussortieren von Karten schadet, zeigen Kornell und Bjork. Die Stufen des Wortwissens beschreiben Laufer und Goldstein; dass Sätze zusätzlich Gebrauch und Grammatik aufbauen, zeigen Nation und Webb.</p>
+      <details><summary class="small">Literatur</summary>
+        <ul class="small" style="padding-left:18px">
+          <li>Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., &amp; Rohrer, D. (2006). Distributed practice in verbal recall tasks. <i>Psychological Bulletin, 132</i>(3), 354–380. <a href="https://doi.org/10.1037/0033-2909.132.3.354">doi:10.1037/0033-2909.132.3.354</a></li>
+          <li>Kim, S. K., &amp; Webb, S. (2022). The effects of spaced practice on second language learning: A meta-analysis. <i>Language Learning, 72</i>(1), 269–319. <a href="https://doi.org/10.1111/lang.12479">doi:10.1111/lang.12479</a></li>
+          <li>Kornell, N. (2009). Optimising learning using flashcards. <i>Applied Cognitive Psychology, 23</i>(9), 1297–1317. <a href="https://doi.org/10.1002/acp.1537">doi:10.1002/acp.1537</a></li>
+          <li>Kornell, N., &amp; Bjork, R. A. (2007). The promise and perils of self-regulated study. <i>Psychonomic Bulletin &amp; Review, 14</i>(2), 219–224. <a href="https://doi.org/10.3758/BF03194055">doi:10.3758/BF03194055</a></li>
+          <li>Kornell, N., &amp; Bjork, R. A. (2008). Optimising self-regulated study: The benefits—and costs—of dropping flashcards. <i>Memory, 16</i>(2), 125–136. <a href="https://doi.org/10.1080/09658210701763899">doi:10.1080/09658210701763899</a></li>
+          <li>Laufer, B., &amp; Goldstein, Z. (2004). Testing vocabulary knowledge. <i>Language Learning, 54</i>(3), 399–436. <a href="https://doi.org/10.1111/j.0023-8333.2004.00260.x">doi:10.1111/j.0023-8333.2004.00260.x</a></li>
+          <li>Nakata, T. (2008). English vocabulary learning with word lists, word cards and computers. <i>ReCALL, 20</i>(1), 3–20. <a href="https://doi.org/10.1017/S0958344008000219">doi:10.1017/S0958344008000219</a></li>
+          <li>Nakata, T. (2011). Computer-assisted second language vocabulary learning in a paired-associate paradigm. <i>Computer Assisted Language Learning, 24</i>(1), 17–38. <a href="https://doi.org/10.1080/09588221.2010.520675">doi:10.1080/09588221.2010.520675</a></li>
+          <li>Nakata, T. (2015). Effects of expanding and equal spacing on second language vocabulary learning. <i>Studies in Second Language Acquisition, 37</i>(4), 677–711. <a href="https://doi.org/10.1017/S0272263114000825">doi:10.1017/S0272263114000825</a></li>
+          <li>Nation, I. S. P. (2013). <i>Learning vocabulary in another language</i> (2nd ed.). Cambridge University Press. <a href="https://doi.org/10.1017/CBO9781139858656">doi:10.1017/CBO9781139858656</a></li>
+          <li>Pyc, M. A., &amp; Rawson, K. A. (2009). Testing the retrieval effort hypothesis. <i>Journal of Memory and Language, 60</i>(4), 437–447. <a href="https://doi.org/10.1016/j.jml.2009.01.004">doi:10.1016/j.jml.2009.01.004</a></li>
+          <li>Roediger, H. L., &amp; Karpicke, J. D. (2006). Test-enhanced learning. <i>Psychological Science, 17</i>(3), 249–255. <a href="https://doi.org/10.1111/j.1467-9280.2006.01693.x">doi:10.1111/j.1467-9280.2006.01693.x</a></li>
+          <li>Webb, S. (2007). The effects of repetition on vocabulary knowledge. <i>Applied Linguistics, 28</i>(1), 46–65. <a href="https://doi.org/10.1093/applin/aml048">doi:10.1093/applin/aml048</a></li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <!-- ================= EINSTELLUNGEN ================= -->
   <section id="tab-settings" hidden>
     <div class="card">
-      <h2 style="margin:0 0 8px;font-size:1.05rem">Abfragerichtungen</h2>
-      <label class="chk"><input type="checkbox" data-dir="de_fr" checked> Deutsch → Französisch <span class="small muted">(tippen)</span></label>
-      <label class="chk"><input type="checkbox" data-dir="fr_de" checked> Französisch → Deutsch <span class="small muted">(aufdecken, selbst bewerten)</span></label>
-      <label class="chk"><input type="checkbox" data-dir="ipa_fr" checked> Lautschrift → Schreibweise <span class="small muted">(tippen; nur Einträge mit IPA, keine Eigennamen)</span></label>
-    </div>
-    <div class="card">
-      <h2 style="margin:0 0 8px;font-size:1.05rem">Unités</h2>
-      <div id="unitBoxes" class="row"></div>
-      <p class="small muted" style="margin:8px 0 0">Nur angekreuzte Unités liefern neue Wörter und Wiederholungen. Der Lernstand der anderen bleibt erhalten.</p>
-    </div>
-    <div class="card">
-      <h2 style="margin:0 0 8px;font-size:1.05rem">Lernplan</h2>
+      <h2>Lerntage</h2>
       <div class="row">
-        <label for="newPerDay">Neue Wörter pro Tag</label>
-        <input type="number" id="newPerDay" min="0" max="50" value="8" style="width:80px;font-size:1rem;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
+        <label for="daySize">Wörter pro Lerntag (Ziel)</label>
+        <input type="number" id="daySize" min="5" max="20" value="9" style="width:80px;font-size:1rem;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
       </div>
-      <div class="row" style="margin-top:8px">
-        <label for="maxReviews">Maximal Wiederholungen pro Session</label>
-        <input type="number" id="maxReviews" min="5" max="500" value="60" style="width:80px;font-size:1rem;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
-      </div>
-      <p class="small muted" style="margin:10px 0 0">Neue Wörter werden in der Reihenfolge des Buchs freigeschaltet (Unité, dann <code>order</code>). Wiederholungen kommen nach Leitner-Stufen: 0 → sofort, 1 → 1 Tag, 2 → 3 Tage, 3 → 7, 4 → 14, 5 → 30 Tage.</p>
+      <p class="small muted" style="margin:8px 0 0">Ein Abschnitt wird in gleich große Lerntage geteilt, möglichst 8–10 Wörter. Bei „alle Abschnitte“ gilt die Lerntag-Einteilung aus der Masterliste.</p>
     </div>
     <div class="card">
-      <h2 style="margin:0 0 8px;font-size:1.05rem">Daten</h2>
+      <h2>Wiederholung</h2>
+      <p class="small muted" style="margin:0">Jede richtige Antwort hebt die Karte eine Stufe: 0 → sofort, 1 → 1 Tag, 2 → 3 Tage, 3 → 7, 4 → 14, 5 → 30 Tage. Ein Fehler setzt sie auf 0 und auf die Fehlerliste. „Wiederholung fällig“ zeigt alle Karten, deren Frist abgelaufen ist – über alle Unités.</p>
+    </div>
+    <div class="card">
+      <h2>Daten</h2>
       <div class="small" id="dataInfo"></div>
       <div class="row" style="margin-top:10px">
         <label class="ghost" style="cursor:pointer">vocab.json laden <input type="file" id="fileVocab" accept=".json,application/json" hidden></label>
@@ -215,12 +268,12 @@
       </div>
     </div>
     <div class="card">
-      <h2 style="margin:0 0 8px;font-size:1.05rem">Lernstand</h2>
+      <h2>Lernstand</h2>
       <p class="small muted" style="margin:0 0 8px">Der Lernstand liegt nur in diesem Browser. Zum Umziehen auf ein anderes Gerät exportieren und dort importieren.</p>
       <div class="row">
         <button class="ghost" id="btnExport">Exportieren</button>
         <label class="ghost" style="cursor:pointer">Importieren <input type="file" id="fileState" accept=".json,application/json" hidden></label>
-        <button class="ghost" id="btnReset" style="color:var(--bad)">Zurücksetzen</button>
+        <button class="ghost danger" id="btnReset">Zurücksetzen</button>
       </div>
       <details style="margin-top:10px"><summary class="small">Theme</summary>
         <div class="row" style="margin-top:6px">
@@ -232,54 +285,70 @@
     </div>
   </section>
 </main>
-<footer>Daten aus <code>vocab.json</code> (Schema 1). Lautschrift ist Standard-IPA als Lernhilfe.</footer>
+<footer>Daten aus <code>vocab.json</code> (<span id="srcLabel"></span>). Lautschrift ist Standard-IPA als Lernhilfe.</footer>
 
 <script>
 'use strict';
 /* =====================================================================
    Words are magic – Vokabeltrainer
-   Liest vocab.json (Vertrag: vocab-schema.md). Lernstand in localStorage,
-   geschlüsselt an entry.id + Richtung. Keine Abhängigkeiten.
+   Lerneinheit (Unité → Abschnitt → Lerntag) wählen, Richtung wählen,
+   Runde durcharbeiten. Lernstand in localStorage. Keine Abhängigkeiten.
    ===================================================================== */
-
 const DIRS = {
-  de_fr: { label: 'Deutsch → Französisch', typed: true },
-  fr_de: { label: 'Französisch → Deutsch', typed: false },
-  ipa_fr:{ label: 'Lautschrift → Schreibweise', typed: true },
+  de_fr:  { label: 'Deutsch → Französisch',     typed: true,  word: true },
+  fr_de:  { label: 'Französisch → Deutsch',     typed: false, word: true },
+  ipa_fr: { label: 'Lautschrift → Französisch', typed: true,  word: true },
+  sent_de_fr: { label: 'Satz: Deutsch → Französisch', typed: true,  word: false },
+  sent_fr_de: { label: 'Satz: Französisch → Deutsch', typed: false, word: false },
 };
-const INTERVALS = [0, 1, 3, 7, 14, 30]; // Tage je Leitner-Stufe
+const WORD_DIRS = ['de_fr', 'fr_de', 'ipa_fr'];
+const TIPS = [
+  ['Jeden Tag 10 bis 15 Minuten, auch am Wochenende.', 'Dieselbe Lernzeit über viele Tage verteilt bleibt viel länger im Kopf als dieselbe Zeit am Stück. Ein ausgelassener Tag kostet mehr, als er spart.'],
+  ['Erst alle fälligen Wiederholungen, dann die neuen Wörter.', 'Das Wiederholen ist die eigentliche Arbeit. Neue Wörter sind nur der Nachschub.'],
+  ['Immer zuerst selbst antworten, dann erst aufdecken.', 'Tippen oder laut sagen, nie „kenn ich“ wegklicken. Ein Wort aus dem Gedächtnis zu holen speichert es. Nochmal lesen fühlt sich gut an, bringt aber wenig.'],
+  ['Hauptrichtung: Deutsch → Französisch mit Tippen.', 'Genau das verlangt der Vokabeltest, und genau das ist bei fast allen die schwächste Stufe. Was sich anstrengend anfühlt, wirkt am stärksten.'],
+  ['Französisch → Deutsch nur als schnelle Kontrolle.', 'Erkennen ist leichter als Produzieren. Diese Richtung zeigt dir, ob du die Bedeutung kennst, aber nicht, ob du das Wort schreiben kannst.'],
+  ['Lautschrift → Schreibweise zwei- bis dreimal pro Woche als eigenen Block.', 'Im Französischen klingt vieles gleich und schreibt sich verschieden (-é, -er, -ez, -ais). Vom Klang zur Schreibung zu tippen trainiert genau die Stelle, an der Diktate und eigene Texte scheitern.'],
+  ['Den Beispielsatz nach dem Aufdecken einmal laut lesen.', 'Die Karte lehrt dich Wort und Bedeutung. Der Satz zeigt dir, wie das Wort benutzt wird, mit welchen Wörtern es zusammengeht und welche Form es hat.'],
+  ['Einmal pro Woche fünf alte Wörter nehmen und eigene Sätze bilden.', 'Ein eigener Satz ist die höchste Stufe des Wortwissens und das, was im Unterricht und in Klassenarbeiten zählt.'],
+  ['Keine Wörter nach Gefühl aussortieren. Die App entscheidet anhand deiner getippten Treffer.', 'Das Gefühl „das kann ich schon“ ist fast immer zu optimistisch. Wer selbst aussortiert, lernt messbar schlechter.'],
+  ['Wenn es sich schwer und langsam anfühlt, ist das richtig.', 'In einer Studie glaubten 72 % der Lernenden, die leichtere Methode habe besser funktioniert, obwohl die schwerere deutlich mehr gebracht hat. Das Gefühl täuscht; vertrau dem Plan.'],
+];
+function showTip(){
+  const i = (settings.tipIdx || 0) % TIPS.length; settings.tipIdx = i + 1; saveSettings();
+  $('tipNo').textContent = `${i + 1} von ${TIPS.length}`; $('tipTitle').textContent = TIPS[i][0]; $('tipWhy').textContent = 'Warum: ' + TIPS[i][1];
+  $('tipBox').hidden = false;
+}
+const SECTION_RANK = { 'Auftaktseite': 0, 'Vocabulaire thématique': 1, 'Volet 1': 2, 'Volet 2': 3 };
+const INTERVALS = [0, 1, 3, 7, 14, 30];
 const MAXBOX = INTERVALS.length - 1;
-const LS_STATE = 'wam:state:v1';
-const LS_SETTINGS = 'wam:settings:v1';
-const LS_VOCAB = 'wam:vocab:v1';   // Kopie einer per Datei geladenen vocab.json
+const MAX_RETRY = 2;
+const LS_STATE = 'wam:state:v2', LS_SETTINGS = 'wam:settings:v2', LS_VOCAB = 'wam:vocab:v1', LS_ROUNDS = 'wam:rounds:v1';
 
 const $ = id => document.getElementById(id);
-const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
-const addDays = (ymd, n) => { const [y,m,d] = ymd.split('-').map(Number); const dt = new Date(y, m-1, d + n); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`; };
+const pad = n => String(n).padStart(2, '0');
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const addDays = (ymd, n) => { const [y,m,d] = ymd.split('-').map(Number); const dt = new Date(y, m-1, d+n); return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`; };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const shuffle = a => { for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const idNum = id => parseInt((String(id).match(/(\d+)$/) || [0,0])[1], 10);
 
-let VOCAB = null;          // { schema, source, version, changelog, entries }
-let ENTRIES = [];          // sortiert nach unit, order
-let BYID = new Map();
-let state = loadJSON(LS_STATE) || { cards: {}, introduced: {}, log: [] };
-let settings = Object.assign({ dirs: { de_fr:true, fr_de:true, ipa_fr:true }, newPerDay: 8, maxReviews: 60, theme: 'auto', units: null }, loadJSON(LS_SETTINGS) || {});
+let VOCAB = null, ENTRIES = [], BYID = new Map();
+let state = loadJSON(LS_STATE) || { cards: {}, log: [] };
+let rounds = loadJSON(LS_ROUNDS) || {};
+let settings = Object.assign({ daySize: 9, theme: 'auto', unit: null, section: 'all', day: 1, mode: null }, loadJSON(LS_SETTINGS) || {});
 
 function loadJSON(k){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch(e){ return null; } }
-function saveJSON(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){ /* privat/voll: still weiter */ } }
-const saveState = () => saveJSON(LS_STATE, state);
-const saveSettings = () => saveJSON(LS_SETTINGS, settings);
+function saveJSON(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+const saveState = () => saveJSON(LS_STATE, state), saveSettings = () => saveJSON(LS_SETTINGS, settings), saveRounds = () => saveJSON(LS_ROUNDS, rounds);
 
 /* ---------- Theme ---------- */
-function applyTheme(){
-  const t = settings.theme || 'auto';
-  if (t === 'auto') document.documentElement.removeAttribute('data-theme');
-  else document.documentElement.setAttribute('data-theme', t);
-}
+function applyTheme(){ const t = settings.theme || 'auto'; if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); }
 document.querySelectorAll('[data-theme]').forEach(b => b.addEventListener('click', () => { settings.theme = b.dataset.theme; saveSettings(); applyTheme(); }));
 applyTheme();
+$('tipList').innerHTML = TIPS.map(([t, w]) => `<li><b>${esc(t)}</b><span class="small muted">Warum: ${esc(w)}</span></li>`).join('');
 
-/* ---------- Laden von vocab.json ---------- */
+/* ---------- vocab.json ---------- */
 async function loadVocab(){
   $('loadBanner').hidden = true;
   let data = null, origin = '';
@@ -290,52 +359,30 @@ async function loadVocab(){
   } catch (e) {
     const cached = loadJSON(LS_VOCAB);
     if (cached) { data = cached; origin = 'gespeicherte Kopie'; }
-    else {
-      showBanner('err', `Konnte <code>vocab.json</code> nicht laden (${esc(e.message)}). Wenn die Seite als Datei geöffnet ist, bitte unter <b>Einstellungen → Daten</b> die Datei auswählen.`);
-      return;
-    }
+    else { showBanner('err', `Konnte <code>vocab.json</code> nicht laden (${esc(e.message)}). Wenn die Seite als Datei geöffnet ist, bitte unter <b>Einstellungen → Daten</b> die Datei auswählen.`); return; }
   }
   setVocab(data, origin);
 }
 function showBanner(kind, html){ const b = $('loadBanner'); b.className = 'banner ' + (kind === 'err' ? 'err' : ''); b.innerHTML = html; b.hidden = false; }
-
 function setVocab(data, origin){
   const err = checkVocab(data);
   if (err) { showBanner('err', 'vocab.json entspricht nicht dem Schema: ' + esc(err)); return; }
   VOCAB = data;
-  ENTRIES = [...data.entries].sort((a,b) => a.unit - b.unit || a.order - b.order);
+  ENTRIES = [...data.entries].sort((a,b) => a.unit - b.unit || (SECTION_RANK[a.section] ?? 9) - (SECTION_RANK[b.section] ?? 9) || idNum(a.id) - idNum(b.id) || a.order - b.order);
   BYID = new Map(ENTRIES.map(e => [e.id, e]));
-  $('srcLabel').textContent = `${data.source || ''} · v${data.version || '?'}`;
-  const sample = data.entries.some(e => e.editorial && /beispieldaten/i.test(e.editorial));
-  if (sample) showBanner('warn', 'Diese Datei enthält nur <b>Beispieldaten</b>. Die echte <code>vocab.json</code> kommt aus der Masterliste.');
+  $('srcLabel').textContent = `v${data.version || '?'}`;
+  if (data.entries.some(e => e.editorial && /beispieldaten/i.test(e.editorial))) showBanner('warn', 'Diese Datei enthält nur <b>Beispieldaten</b>.');
   $('dataInfo').innerHTML = `Quelle: ${esc(data.source)}<br>Version: <b>${esc(data.version)}</b> · ${data.entries.length} Einträge · geladen aus: ${esc(origin)}` +
     (Array.isArray(data.changelog) && data.changelog.length ? `<details style="margin-top:6px"><summary>Changelog</summary><ul class="small">${data.changelog.map(c => `<li><b>${esc(c.version)}</b> – ${esc(c.note)}</li>`).join('')}</ul></details>` : '');
-  renderUnitBoxes(); renderDash(); renderCahier();
+  initPicker(); renderCahier();
 }
-function renderUnitBoxes(){
-  const units = [...new Set(ENTRIES.map(e => e.unit))].sort((a,b) => a-b);
-  const box = $('unitBoxes'); box.innerHTML = '';
-  units.forEach(u => {
-    const n = ENTRIES.filter(e => e.unit === u).length;
-    const l = document.createElement('label'); l.className = 'chk';
-    l.innerHTML = `<input type="checkbox" data-unit="${u}"> Unité ${u} <span class="small muted">(${n})</span>`;
-    const cb = l.querySelector('input'); cb.checked = !settings.units || settings.units.includes(u);
-    cb.addEventListener('change', () => {
-      const on = [...box.querySelectorAll('input')].filter(x => x.checked).map(x => +x.dataset.unit);
-      settings.units = on.length === units.length ? null : on; saveSettings(); renderDash(); renderCahier();
-    });
-    box.appendChild(l);
-  });
-}
-/* Leichte Prüfung; das strenge Prüfskript ist validate_vocab.py */
 function checkVocab(d){
   if (!d || typeof d !== 'object') return 'kein Objekt';
   if (d.schema !== 1) return 'schema ≠ 1';
   if (!Array.isArray(d.entries)) return 'entries fehlt';
   const ids = new Set();
   for (const e of d.entries){
-    for (const f of ['id','unit','section','order','fr','fr_accept','de','pos','tags','proper_name'])
-      if (e[f] === undefined || e[f] === null) return `Eintrag ${e.id || '?'}: Feld ${f} fehlt`;
+    for (const f of ['id','unit','section','order','fr','fr_accept','de','pos','tags','proper_name']) if (e[f] === undefined || e[f] === null) return `Eintrag ${e.id || '?'}: Feld ${f} fehlt`;
     if (ids.has(e.id)) return `ID doppelt: ${e.id}`; ids.add(e.id);
     if (!Array.isArray(e.fr_accept) || !e.fr_accept.includes(e.fr)) return `${e.id}: fr nicht in fr_accept`;
   }
@@ -349,298 +396,317 @@ $('fileVocab').addEventListener('change', async ev => {
 });
 $('btnReload').addEventListener('click', loadVocab);
 
-/* ---------- Lernstand ---------- */
-function cardKey(id, dir){ return id + '|' + dir; }
-function getCard(id, dir){ return state.cards[cardKey(id, dir)] || null; }
-function unitActive(e){ return !settings.units || settings.units.includes(e.unit); }
-function dirApplies(e, dir){
-  if (!settings.dirs[dir] || !unitActive(e)) return false;
-  if (dir === 'ipa_fr') return !!e.ipa && !e.proper_name;
-  return true;
-}
-function ensureCards(e){
-  for (const dir of Object.keys(DIRS)){
-    if (!dirApplies(e, dir)) continue;
-    const k = cardKey(e.id, dir);
-    if (!state.cards[k]) state.cards[k] = { box: 0, due: todayStr(), seen: 0, right: 0, wrong: 0, near: 0 };
+/* ---------- Lerneinheit: Unité → Abschnitt → Lerntag ---------- */
+function unitsList(){ return [...new Set(ENTRIES.map(e => e.unit))].sort((a,b) => a-b); }
+function sectionsOf(unit){ return [...new Set(ENTRIES.filter(e => e.unit === unit).map(e => e.section))].sort((a,b) => (SECTION_RANK[a] ?? 9) - (SECTION_RANK[b] ?? 9)); }
+function scopeEntries(unit, section){ return ENTRIES.filter(e => e.unit === unit && (section === 'all' || e.section === section)); }
+/* Lerntage: bei "alle Abschnitte" die Einteilung der Masterliste (day), sonst gleich große Blöcke um daySize */
+function daysOf(unit, section){
+  const list = scopeEntries(unit, section);
+  if (section === 'all' && list.length && list.every(e => Number.isInteger(e.day))){
+    const m = new Map(); list.forEach(e => { if (!m.has(e.day)) m.set(e.day, []); m.get(e.day).push(e); });
+    return [...m.keys()].sort((a,b) => a-b).map(d => m.get(d));
   }
+  const n = list.length, target = Math.max(5, Math.min(20, settings.daySize || 9));
+  let k = Math.max(1, Math.round(n / target)); if (n / k > target + 1) k++;
+  const base = Math.floor(n / k), extra = n % k; const out = []; let i = 0;
+  for (let d = 0; d < k; d++){ const size = base + (d < extra ? 1 : 0); out.push(list.slice(i, i + size)); i += size; }
+  return out.filter(x => x.length);
 }
-function introduceNew(limit){
-  const t = todayStr();
-  const already = Object.values(state.introduced).filter(d => d === t).length;
-  let budget = Math.max(0, limit - already);
-  const out = [];
-  for (const e of ENTRIES){
-    if (budget <= 0) break;
-    if (state.introduced[e.id] || !unitActive(e)) continue;
-    state.introduced[e.id] = t; ensureCards(e); out.push(e); budget--;
-  }
-  if (out.length) saveState();
-  return out;
+function fill(sel, opts, value){
+  sel.innerHTML = opts.map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('');
+  if ([...sel.options].some(o => o.value === String(value))) sel.value = String(value); else sel.selectedIndex = 0;
 }
-function dueCards(){
-  const t = todayStr(); const out = [];
-  for (const [k, c] of Object.entries(state.cards)){
-    const [id, dir] = k.split('|'); const e = BYID.get(id);
-    if (!e || !dirApplies(e, dir)) continue;
-    if (c.due <= t) out.push({ e, dir, c });
-  }
-  return out;
+function initPicker(){
+  const units = unitsList();
+  fill($('selUnit'), units.map(u => ({ value: u, label: `Unité ${u} · ${ENTRIES.filter(e => e.unit === u).length} Wörter` })), settings.unit ?? units[0]);
+  settings.unit = +$('selUnit').value;
+  fillSections(); fillDays(); onScopeChange(false);
 }
-function grade(card, result){ // result: 'ok' | 'near' | 'bad'
+function fillSections(){
+  const secs = sectionsOf(settings.unit);
+  fill($('selSection'), [{ value: 'all', label: 'alle Abschnitte' }, ...secs.map(s => ({ value: s, label: `${s} · ${scopeEntries(settings.unit, s).length}` }))], settings.section);
+  settings.section = $('selSection').value;
+}
+function fillDays(){
+  const days = daysOf(settings.unit, settings.section);
+  fill($('selDay'), days.map((d, i) => ({ value: i + 1, label: `Lerntag ${i + 1} · ${d.length} Wörter` })), settings.day);
+  settings.day = +$('selDay').value;
+}
+$('selUnit').addEventListener('change', () => { settings.unit = +$('selUnit').value; settings.section = 'all'; settings.day = 1; fillSections(); fillDays(); onScopeChange(true); });
+$('selSection').addEventListener('change', () => { settings.section = $('selSection').value; settings.day = 1; fillDays(); onScopeChange(true); });
+$('selDay').addEventListener('change', () => { settings.day = +$('selDay').value; onScopeChange(true); });
+$('daySize').value = settings.daySize;
+$('daySize').addEventListener('change', () => { settings.daySize = Math.max(5, Math.min(20, parseInt($('daySize').value, 10) || 9)); saveSettings(); fillDays(); onScopeChange(true); });
+
+function currentSet(){ const days = daysOf(settings.unit, settings.section); return days[settings.day - 1] || []; }
+function scopeKey(){ return `${settings.unit}|${settings.section}|${settings.day}`; }
+function onScopeChange(userAction){
+  saveSettings();
+  if (userAction) stopRound();
+  const set = currentSet();
+  $('eyebrow').textContent = `Französisch · Unité ${settings.unit} · ${settings.section === 'all' ? 'alle Abschnitte' : settings.section} · Lerntag ${settings.day}`;
+  $('subline').textContent = `${set.length} Wörter in diesem Lerntag · ${scopeEntries(settings.unit, settings.section).length} im Abschnitt`;
+  $('scopeInfo').textContent = 'Die Auswahl gilt für alle Übungen. Ein Wechsel beendet die laufende Runde; der Lernstand bleibt erhalten.';
+  renderModes(); renderRing(); renderSetList();
+}
+
+/* ---------- Lernstand je Karte (Leitner) ---------- */
+const cardKey = (id, dir) => id + '|' + dir;
+function getCard(id, dir){ const k = cardKey(id, dir); if (!state.cards[k]) state.cards[k] = { box: 0, due: todayStr(), seen: 0, right: 0, wrong: 0, near: 0, last: null }; return state.cards[k]; }
+function dirApplies(e, dir){ if (dir === 'ipa_fr') return !!e.ipa && !e.proper_name; return true; }
+function grade(card, result){
   card.seen++;
   if (result === 'ok'){ card.right++; card.box = Math.min(MAXBOX, card.box + 1); }
-  else if (result === 'near'){ card.near++; /* Stufe bleibt */ }
+  else if (result === 'near'){ card.near++; }
   else { card.wrong++; card.box = 0; }
-  card.due = addDays(todayStr(), INTERVALS[card.box]);
-  card.last = todayStr();
+  card.due = addDays(todayStr(), INTERVALS[card.box]); card.last = result; card.lastAt = todayStr();
   state.log.push([todayStr(), result]); if (state.log.length > 5000) state.log.splice(0, state.log.length - 5000);
   saveState();
 }
+function isError(e){ return WORD_DIRS.some(d => dirApplies(e, d) && state.cards[cardKey(e.id, d)]?.last === 'bad'); }
+function errorEntries(unit){ return ENTRIES.filter(e => (unit == null || e.unit === unit) && isError(e)); }
+function dueItems(){
+  const t = todayStr(), out = [];
+  for (const [k, c] of Object.entries(state.cards)){
+    const [id, dir] = k.split('|'); const e = BYID.get(id);
+    if (!e || !DIRS[dir] || !DIRS[dir].word || !dirApplies(e, dir)) continue;
+    if (c.seen > 0 && c.due <= t) out.push({ e, dir, c });
+  }
+  return out;
+}
 
-/* ---------- Vergleich der getippten Eingabe ---------- */
+/* ---------- Runden (je Lerneinheit × Richtung) ---------- */
+function roundKey(mode){ return scopeKey() + '|' + mode; }
+function roundFor(mode){ const k = roundKey(mode); if (!rounds[k]) rounds[k] = { ok: {}, started: todayStr() }; return rounds[k]; }
+function itemsFor(mode){
+  const set = currentSet();
+  if (mode === 'errors') return errorEntries(settings.unit).map(e => ({ e, dir: 'de_fr', c: getCard(e.id, 'de_fr'), key: e.id }));
+  if (mode === 'review') return dueItems().map(x => ({ ...x, key: cardKey(x.e.id, x.dir) }));
+  if (mode === 'sent_de_fr' || mode === 'sent_fr_de'){
+    const out = [];
+    for (const e of set){
+      [[e.example_fr, e.example_de, 1], [e.example2_fr, e.example2_de, 2]].forEach(([fr, de, i]) => { if (fr && de) out.push({ e, dir: mode, fr, de, key: e.id + '#' + i }); });
+    }
+    return out;
+  }
+  return set.filter(e => dirApplies(e, mode)).map(e => ({ e, dir: mode, c: getCard(e.id, mode), key: e.id }));
+}
+function renderModes(){
+  const errN = errorEntries(settings.unit).length, dueN = dueItems().length;
+  document.querySelectorAll('#modes button').forEach(b => {
+    const m = b.dataset.mode; const items = itemsFor(m); const n = b.querySelector('.n');
+    if (m === 'errors') n.textContent = errN ? `${errN} gemerkt` : 'leer';
+    else if (m === 'review') n.textContent = dueN ? `${dueN} fällig` : 'nichts fällig';
+    else { const r = rounds[roundKey(m)]; const done = r ? items.filter(it => r.ok[it.key]).length : 0; n.textContent = `${done} / ${items.length}`; }
+    b.disabled = items.length === 0;
+    b.setAttribute('aria-pressed', String(mode === m && !$('quiz').hidden));
+  });
+}
+function renderRing(){
+  const set = currentSet(); const n = set.length;
+  const done = set.filter(e => WORD_DIRS.filter(d => dirApplies(e, d)).every(d => rounds[roundKey(d)]?.ok[e.id])).length;
+  $('ringN').textContent = `${done} / ${n}`; $('ring').style.setProperty('--p', n ? 100 * done / n : 0);
+}
+function renderSetList(){
+  const set = currentSet(); const body = $('setListBody'); body.innerHTML = '';
+  $('setListTitle').textContent = `Die Wörter dieses Lerntags (${set.length})`;
+  set.forEach(e => {
+    const boxes = WORD_DIRS.filter(d => dirApplies(e, d)).map(d => { const c = state.cards[cardKey(e.id, d)]; return c && c.seen ? `<span class="box b${c.box}" title="${esc(DIRS[d].label)}">${c.box}</span>` : `<span class="box" title="${esc(DIRS[d].label)}">·</span>`; }).join(' ');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><b>${esc(e.fr)}</b>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}</td><td>${esc(e.de)}</td><td>${boxes}${isError(e) ? '<span class="chip err">Fehler</span>' : ''}</td>`;
+    body.appendChild(tr);
+  });
+  $('setList').hidden = !set.length || !$('quiz').hidden;
+}
+
+/* ---------- Vergleich ---------- */
 const ARTICLES = /^((le|la|les|un|une|des)\s+|l')/i;
 function norm(s, { accents = true } = {}){
-  let x = String(s).trim().toLowerCase()
-    .replace(/[’‘ʼ`´]/g, "'")   // typografische Apostrophe
-    .replace(/\s*'\s*/g, "'")                   // Leerzeichen um Apostroph
-    .replace(/\s+/g, ' ')
-    .replace(/\s*-\s*/g, '-');
+  let x = String(s).trim().toLowerCase().replace(/[’‘ʼ`´]/g, "'").replace(/\s*'\s*/g, "'").replace(/\s+/g, ' ').replace(/\s*-\s*/g, '-').replace(/\s*([?!:;,])\s*/g, '$1').replace(/[.!?]+$/, '');
   if (!accents){ x = x.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/ç/g, 'c'); }
   return x;
 }
-function compare(input, entry){
+function compareWord(input, entry){
   const given = input.trim();
-  if (!given) return { result: 'bad', why: 'Keine Eingabe.' };
+  if (!given) return { result: 'bad', why: 'Keine Eingabe.', target: entry.fr };
   const acc = entry.fr_accept;
   if (acc.some(a => norm(a) === norm(given))) return { result: 'ok', why: 'Richtig.' };
-  if (acc.some(a => norm(a, {accents:false}) === norm(given, {accents:false}))) {
-    const best = acc.find(a => norm(a, {accents:false}) === norm(given, {accents:false}));
-    return { result: 'near', why: 'Fast richtig – Akzente oder Schreibweise prüfen.', target: best };
-  }
+  const near = acc.find(a => norm(a, {accents:false}) === norm(given, {accents:false}));
+  if (near) return { result: 'near', why: 'Fast richtig – Akzente oder Schreibweise prüfen.', target: near };
   if (entry.pos === 'noun'){
     const strip = s => norm(s, {accents:false}).replace(ARTICLES, '').replace(/\s*\((m|f)\)$/, '');
     if (acc.some(a => strip(a) === strip(given))) return { result: 'bad', why: 'Artikel fehlt oder ist falsch – das zählt als Fehler.', target: acc[0] };
   }
   return { result: 'bad', why: 'Leider falsch.', target: acc[0] };
 }
-/* kleine Zeichen-Diff für die Anzeige (LCS) */
+function compareSentence(input, target){
+  const given = input.trim();
+  if (!given) return { result: 'bad', why: 'Keine Eingabe.', target };
+  if (norm(given) === norm(target)) return { result: 'ok', why: 'Genau wie die Musterlösung.' };
+  if (norm(given, {accents:false}) === norm(target, {accents:false})) return { result: 'near', why: 'Fast – Akzente oder Zeichensetzung prüfen.', target };
+  return { result: 'bad', why: 'Weicht von der Musterlösung ab. Vergleiche Bedeutung, Verbformen und Schreibweise.', target };
+}
 function diffHTML(a, b){
   const A = [...a], B = [...b], n = A.length, m = B.length;
   const L = Array.from({length:n+1}, () => new Uint16Array(m+1));
   for (let i=n-1;i>=0;i--) for (let j=m-1;j>=0;j--) L[i][j] = A[i]===B[j] ? L[i+1][j+1]+1 : Math.max(L[i+1][j], L[i][j+1]);
   let i=0,j=0,out='';
-  while (i<n && j<m){
-    if (A[i]===B[j]){ out += esc(A[i]); i++; j++; }
-    else if (L[i+1][j] >= L[i][j+1]){ out += `<del>${esc(A[i])}</del>`; i++; }
-    else { out += `<ins>${esc(B[j])}</ins>`; j++; }
-  }
-  while (i<n) out += `<del>${esc(A[i++])}</del>`;
-  while (j<m) out += `<ins>${esc(B[j++])}</ins>`;
+  while (i<n && j<m){ if (A[i]===B[j]){ out += esc(A[i]); i++; j++; } else if (L[i+1][j] >= L[i][j+1]){ out += `<del>${esc(A[i])}</del>`; i++; } else { out += `<ins>${esc(B[j])}</ins>`; j++; } }
+  while (i<n) out += `<del>${esc(A[i++])}</del>`; while (j<m) out += `<ins>${esc(B[j++])}</ins>`;
   return `<span class="diff">${out}</span>`;
 }
 
-/* ---------- Dashboard ---------- */
-function renderDash(){
-  if (!VOCAB) return;
-  const due = dueCards().length;
-  const t = todayStr();
-  const newToday = Object.values(state.introduced).filter(d => d === t).length;
-  const intro = Object.keys(state.introduced).filter(id => BYID.has(id)).length;
-  const remainingNew = Math.max(0, settings.newPerDay - newToday);
-  const notYet = ENTRIES.filter(e => !state.introduced[e.id] && unitActive(e)).length;
-  $('stDue').textContent = due;
-  $('stNew').textContent = `${newToday}/${settings.newPerDay}`;
-  $('stKnown').textContent = intro;
-  $('stTotal').textContent = ENTRIES.length;
-  $('progBar').style.width = (ENTRIES.length ? 100*intro/ENTRIES.length : 0) + '%';
-  const plan = [];
-  if (due) plan.push(`${due} Wiederholung${due===1?'':'en'}`);
-  if (remainingNew && notYet) plan.push(`${Math.min(remainingNew, notYet)} neue Wörter`);
-  $('dashHint').textContent = plan.length ? 'Heute: ' + plan.join(' + ') : (notYet ? 'Heute ist alles erledigt.' : 'Alle Wörter eingeführt – nur noch Wiederholungen.');
-  $('btnStart').disabled = !(due || (remainingNew && notYet));
-  $('dateLabel').textContent = new Date().toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' });
-}
-
-/* ---------- Session ---------- */
-let queue = [], cur = null, phase = 'ask', sessionStats = { ok:0, near:0, bad:0, n:0 };
-let awaitingNext = false;
-
-function startSession(){
-  sessionStats = { ok:0, near:0, bad:0, n:0 };
-  // 1) fällige Wiederholungen (gemischt), 2) neue Wörter – erst Lesen, dann Üben
-  const reviews = shuffle(dueCards()).slice(0, settings.maxReviews);
-  const fresh = introduceNew(settings.newPerDay);
-  const newCards = [];
-  for (const e of fresh) for (const dir of Object.keys(DIRS)) if (dirApplies(e, dir)) newCards.push({ e, dir, c: getCard(e.id, dir), fresh: true });
-  queue = [...reviews, ...newCards];
-  if (!queue.length){ renderDash(); return; }
-  $('dash').hidden = true; $('done').hidden = true; $('quiz').hidden = false;
+/* ---------- Runde spielen ---------- */
+let queue = [], cur = null, phase = 'ask', awaitingNext = false, roundStats = null, mode = null, wrongKeys = new Set();
+function startRound(m, onlyKeys){
+  mode = m; settings.mode = m; saveSettings();
+  let items = itemsFor(m);
+  const r = (m === 'errors' || m === 'review') ? null : roundFor(m);
+  if (onlyKeys) items = items.filter(it => onlyKeys.has(it.key));
+  else if (r) items = items.filter(it => !r.ok[it.key]);
+  if (m === 'review') items = shuffle(items);
+  queue = items.map(it => ({ ...it, retry: 0 })); wrongKeys = new Set();
+  roundStats = { ok:0, near:0, bad:0, n:0, total: queue.length };
+  if (!queue.length){ finishRound(); return; }
+  $('done').hidden = true; $('quiz').hidden = false; $('setList').hidden = true; renderModes();
+  showTip();
   nextCard();
 }
-function stopSession(){ queue = []; cur = null; $('quiz').hidden = true; $('dash').hidden = false; renderDash(); renderCahier(); }
-const MAX_RETRY = 2; // so oft kommt eine falsche Karte in derselben Session wieder
-function requeue(card){
-  const retry = (card.retry || 0) + 1;
-  if (retry > MAX_RETRY) return;
-  queue.push({ ...card, fresh: false, retry });
-}
+function stopRound(){ queue = []; cur = null; mode = null; $('quiz').hidden = true; $('done').hidden = true; renderModes(); renderRing(); renderSetList(); }
+function requeue(item){ const retry = (item.retry || 0) + 1; if (retry > MAX_RETRY) return; queue.push({ ...item, retry }); }
 function nextCard(){
-  if (!queue.length){ return finishSession(); }
+  if (!queue.length) return finishRound();
+  if (roundStats.n > 0) $('tipBox').hidden = true;
   cur = queue.shift(); phase = 'ask'; awaitingNext = false;
-  const { e, dir } = cur;
-  $('qCounter').innerHTML = `${sessionStats.n + 1} · noch ${queue.length} ${cur.fresh ? '<span class="dirtag">neu</span>' : ''}`;
-  $('qLabel').innerHTML = esc(DIRS[dir].label) + (e.section ? ` <span class="muted">· U${e.unit} ${esc(e.section)}</span>` : '');
-  const p = $('qPrompt'); p.className = 'prompt' + (dir === 'ipa_fr' ? ' ipa' : '');
-  if (dir === 'de_fr') p.innerHTML = esc(e.de);
-  else if (dir === 'fr_de') p.innerHTML = esc(e.fr);
-  else p.innerHTML = '[' + esc(e.ipa) + ']';
+  const { e, dir } = cur; const d = DIRS[dir];
+  const left = queue.length;
+  $('qCounter').textContent = `Aufgabe ${roundStats.n + 1} · noch ${left}` + (cur.retry ? ' · Wiederholung' : '');
+  $('qRight').textContent = `${roundStats.ok} richtig`;
+  $('qBar').style.width = (100 * roundStats.n / (roundStats.n + left + 1)) + '%';
+  const sec = `U${e.unit} · ${esc(e.section)}`;
+  const p = $('qPrompt'); p.className = 'prompt'; $('qHint').hidden = true;
+  if (dir === 'de_fr'){ $('qLabel').innerHTML = 'Schreibe das französische Wort · ' + sec; p.textContent = e.de; if (e.pos === 'noun'){ $('qHint').textContent = 'Der Artikel gehört zur Antwort.'; $('qHint').hidden = false; } }
+  else if (dir === 'fr_de'){ $('qLabel').innerHTML = 'Was heißt das? · ' + sec; p.textContent = e.fr; }
+  else if (dir === 'ipa_fr'){ $('qLabel').innerHTML = 'Lies die Laute, schreibe das Wort · ' + sec; p.className = 'prompt ipa'; p.textContent = '[' + e.ipa + ']'; $('qHint').textContent = 'Artikel bzw. „se“ gehören zur Antwort.'; $('qHint').hidden = false; }
+  else if (dir === 'sent_de_fr'){ $('qLabel').innerHTML = 'Übersetze ins Französische · ' + esc(e.fr); p.className = 'prompt sentence'; p.textContent = cur.de; }
+  else { $('qLabel').innerHTML = 'Übersetze ins Deutsche · ' + esc(e.fr); p.className = 'prompt sentence'; p.textContent = cur.fr; }
   $('verdict').hidden = true; $('reveal').hidden = true; $('judgeRow').hidden = true; $('nextRow').hidden = true;
-  if (DIRS[dir].typed){ $('typeBox').hidden = false; $('revealBox').hidden = true; $('answer').value = ''; $('answer').disabled = false; setTimeout(() => $('answer').focus(), 30); }
+  if (d.typed){ $('typeBox').hidden = false; $('revealBox').hidden = true; $('answer').value = ''; $('answer').disabled = false; $('answer').placeholder = d.word ? 'Auf Französisch eintippen …' : 'Deine Übersetzung …'; setTimeout(() => $('answer').focus(), 30); }
   else { $('typeBox').hidden = true; $('revealBox').hidden = false; }
 }
-function renderReveal(e){
+function renderReveal(e, sentence){
   const exOne = (f, d) => f ? `<div class="ex">${esc(f)}<div class="d">${esc(d || '')}</div></div>` : '';
-  const ex = exOne(e.example_fr, e.example_de) + exOne(e.example2_fr, e.example2_de);
-  $('reveal').innerHTML = `<div><span class="fr">${esc(e.fr)}</span>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}</div><div class="de">${esc(e.de)}</div>${ex}`;
+  if (sentence) $('reveal').innerHTML = `<div class="ex"><b>${esc(sentence.fr)}</b><div class="d">${esc(sentence.de)}</div></div><div class="small muted" style="margin-top:8px">Wort: <b>${esc(e.fr)}</b> – ${esc(e.de)}</div>`;
+  else $('reveal').innerHTML = `<div><span class="fr">${esc(e.fr)}</span>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}</div><div>${esc(e.de)}</div>${exOne(e.example_fr, e.example_de)}${exOne(e.example2_fr, e.example2_de)}`;
   $('reveal').hidden = false;
+}
+function record(result){
+  const { dir, c, key } = cur;
+  roundStats[result]++; roundStats.n++;
+  if (DIRS[dir].word && c) grade(c, result);
+  if (mode !== 'errors' && mode !== 'review'){ const r = roundFor(mode); if (result === 'ok') r.ok[key] = todayStr(); else delete r.ok[key]; saveRounds(); }
+  if (result === 'bad'){ wrongKeys.add(key); requeue(cur); } else if (result === 'near'){ wrongKeys.add(key); }
 }
 function checkAnswer(){
   if (phase !== 'ask') return;
-  const { e, dir, c } = cur;
-  const r = compare($('answer').value, e);
+  const { e, dir } = cur; const given = $('answer').value;
+  const r = DIRS[dir].word ? compareWord(given, e) : compareSentence(given, cur.fr);
   phase = 'done';
   const v = $('verdict'); v.className = 'verdict ' + r.result; v.hidden = false;
-  let body = `<b>${esc(r.why)}</b>`;
-  if (r.result !== 'ok') body += `Du: ${diffHTML($('answer').value.trim(), r.target || e.fr)}`;
-  v.innerHTML = body;
-  renderReveal(e);
-  $('answer').disabled = true;
-  grade(c, r.result); sessionStats[r.result]++; sessionStats.n++;
-  if (r.result === 'bad') requeue(cur); // nochmal in dieser Session
+  v.innerHTML = `<b>${esc(r.why)}</b>` + (r.result !== 'ok' ? `Du: ${diffHTML(given.trim(), r.target || e.fr)}` : '');
+  renderReveal(e, DIRS[dir].word ? null : cur); $('answer').disabled = true;
+  record(r.result);
   $('nextRow').hidden = false; awaitingNext = true; $('btnNext').focus();
 }
-function showAnswer(){ // "Zeigen" = aufgeben, zählt als falsch
+function showAnswer(){
   if (phase !== 'ask') return;
-  const { e, c } = cur; phase = 'done';
-  const v = $('verdict'); v.className = 'verdict bad'; v.hidden = false; v.innerHTML = '<b>Angezeigt – zählt als falsch.</b>';
-  renderReveal(e); $('answer').disabled = true;
-  grade(c, 'bad'); sessionStats.bad++; sessionStats.n++;
-  requeue(cur);
+  const { e, dir } = cur; phase = 'done';
+  const v = $('verdict'); v.className = 'verdict bad'; v.hidden = false; v.innerHTML = '<b>Lösung angezeigt – zählt als falsch.</b>';
+  renderReveal(e, DIRS[dir].word ? null : cur); $('answer').disabled = true;
+  record('bad');
   $('nextRow').hidden = false; awaitingNext = true; $('btnNext').focus();
 }
-function flip(){
-  if (phase !== 'ask') return;
-  phase = 'judge'; renderReveal(cur.e); $('revealBox').hidden = true; $('judgeRow').hidden = false; $('btnRight').focus();
-}
-function judge(ok){
-  if (phase !== 'judge') return;
-  phase = 'done';
-  grade(cur.c, ok ? 'ok' : 'bad'); sessionStats[ok ? 'ok' : 'bad']++; sessionStats.n++;
-  if (!ok) requeue(cur);
-  nextCard();
-}
-function finishSession(){
+function flip(){ if (phase !== 'ask') return; phase = 'judge'; renderReveal(cur.e, DIRS[cur.dir].word ? null : cur); $('revealBox').hidden = true; $('judgeRow').hidden = false; $('btnRight').focus(); }
+function judge(ok){ if (phase !== 'judge') return; phase = 'done'; record(ok ? 'ok' : 'bad'); nextCard(); }
+function finishRound(){
   $('quiz').hidden = true; $('done').hidden = false;
-  const s = sessionStats;
-  $('doneText').innerHTML = `${s.n} Karten · <span style="color:var(--ok)">${s.ok} richtig</span> · <span style="color:var(--near)">${s.near} fast</span> · <span style="color:var(--bad)">${s.bad} falsch</span>`;
-  renderDash(); renderCahier();
+  const s = roundStats || { n:0, ok:0, near:0, bad:0 };
+  const r = (mode && mode !== 'errors' && mode !== 'review') ? rounds[roundKey(mode)] : null;
+  const total = mode ? itemsFor(mode).length : 0, done = r ? itemsFor(mode).filter(it => r.ok[it.key]).length : 0;
+  $('doneText').innerHTML = (s.n ? `${s.n} Aufgaben · <span style="color:var(--ok)">${s.ok} richtig</span> · <span style="color:var(--near)">${s.near} fast</span> · <span style="color:var(--bad)">${s.bad} falsch</span>` : 'Nichts zu tun.') +
+    (r ? `<br><span class="small muted">${done} von ${total} in dieser Richtung gesammelt${done === total ? ' – Lerntag komplett.' : '.'}</span>` : '');
+  $('btnRetryWrong').hidden = !wrongKeys.size; renderModes(); renderRing(); renderSetList(); $('setList').hidden = !currentSet().length;
 }
-$('btnStart').addEventListener('click', startSession);
-$('btnAgain').addEventListener('click', () => { $('done').hidden = true; $('dash').hidden = false; renderDash(); });
-$('btnStop').addEventListener('click', stopSession);
-$('btnCheck').addEventListener('click', checkAnswer);
-$('btnShow').addEventListener('click', showAnswer);
-$('btnFlip').addEventListener('click', flip);
-$('btnRight').addEventListener('click', () => judge(true));
-$('btnWrong').addEventListener('click', () => judge(false));
+$('btnRetryWrong').addEventListener('click', () => startRound(mode, new Set(wrongKeys)));
+$('btnNewRound').addEventListener('click', () => { if (mode && mode !== 'errors' && mode !== 'review'){ delete rounds[roundKey(mode)]; saveRounds(); } startRound(mode || 'de_fr'); });
+$('btnStop').addEventListener('click', stopRound);
+$('modes').addEventListener('click', ev => { const b = ev.target.closest('[data-mode]'); if (!b || b.disabled) return; startRound(b.dataset.mode); });
+$('btnCheck').addEventListener('click', checkAnswer); $('btnShow').addEventListener('click', showAnswer);
+$('btnFlip').addEventListener('click', flip); $('btnRight').addEventListener('click', () => judge(true)); $('btnWrong').addEventListener('click', () => judge(false));
 $('btnNext').addEventListener('click', nextCard);
 $('answer').addEventListener('keydown', ev => { if (ev.key === 'Enter'){ ev.preventDefault(); ev.stopPropagation(); checkAnswer(); } });
 document.addEventListener('keydown', ev => {
-  if ($('quiz').hidden) return;
-  const inInput = ev.target === $('answer');
+  if ($('quiz').hidden || !cur) return;
   if (ev.key === 'Enter' && awaitingNext){ ev.preventDefault(); nextCard(); return; }
-  if (inInput) return;
+  if (ev.target === $('answer') || ev.target.tagName === 'SELECT' || ev.target.tagName === 'INPUT') return;
   if (ev.key === ' ' && phase === 'ask' && !DIRS[cur.dir].typed){ ev.preventDefault(); flip(); }
-  if (phase === 'judge' && ev.key === '1'){ judge(false); }
-  if (phase === 'judge' && ev.key === '2'){ judge(true); }
+  if (phase === 'judge' && ev.key === '1') judge(false);
+  if (phase === 'judge' && ev.key === '2') judge(true);
 });
-/* Akzent-Tasten */
 (function(){
-  const chars = ['é','è','ê','ë','à','â','ç','î','ï','ô','û','ù','ü','œ','’'];
+  const chars = ['à','â','ç','é','è','ê','ë','î','ï','ô','û','ù','ü','œ','’'];
   const box = $('accents');
   chars.forEach(ch => {
-    const b = document.createElement('button'); b.type = 'button'; b.textContent = ch === '’' ? "'" : ch;
+    const b = document.createElement('button'); b.type = 'button'; const ins = ch === '’' ? "'" : ch; b.textContent = ins;
     b.addEventListener('mousedown', ev => ev.preventDefault());
-    b.addEventListener('click', () => {
-      const inp = $('answer'); if (inp.disabled) return;
-      const s = inp.selectionStart ?? inp.value.length, e2 = inp.selectionEnd ?? s;
-      const ins = ch === '’' ? "'" : ch;
-      inp.value = inp.value.slice(0, s) + ins + inp.value.slice(e2);
-      inp.selectionStart = inp.selectionEnd = s + ins.length; inp.focus();
-    });
+    b.addEventListener('click', () => { const inp = $('answer'); if (inp.disabled) return; const s = inp.selectionStart ?? inp.value.length, e2 = inp.selectionEnd ?? s; inp.value = inp.value.slice(0, s) + ins + inp.value.slice(e2); inp.selectionStart = inp.selectionEnd = s + ins.length; inp.focus(); });
     box.appendChild(b);
   });
 })();
 
-/* ---------- Cahier ---------- */
+/* ---------- Wortliste ---------- */
 function renderCahier(){
   if (!VOCAB) return;
-  const q = norm($('filter').value || '', {accents:false});
-  const only = $('onlyIntro').checked;
-  const tb = $('cahierBody'); tb.innerHTML = '';
-  let n = 0;
+  const q = norm($('filter').value || '', {accents:false}); const only = $('onlyErrors').checked;
+  const tb = $('cahierBody'); tb.innerHTML = ''; let n = 0;
   for (const e of ENTRIES){
-    if (!unitActive(e)) continue;
-    if (only && !state.introduced[e.id]) continue;
-    if (q && !(norm(e.fr,{accents:false}).includes(q) || norm(e.de,{accents:false}).includes(q) || (e.tags||[]).some(t => norm(t,{accents:false}).includes(q)))) continue;
+    if (only && !isError(e)) continue;
+    if (q && !(norm(e.fr,{accents:false}).includes(q) || norm(e.de,{accents:false}).includes(q))) continue;
     n++;
-    const boxes = Object.keys(DIRS).filter(d => dirApplies(e, d)).map(d => { const c = getCard(e.id, d); return c ? `<span class="box b${c.box}" title="${esc(DIRS[d].label)} · fällig ${esc(c.due)}">${c.box}</span>` : ''; }).join(' ');
+    const boxes = WORD_DIRS.filter(d => dirApplies(e, d)).map(d => { const c = state.cards[cardKey(e.id, d)]; return c && c.seen ? `<span class="box b${c.box}" title="${esc(DIRS[d].label)} · fällig ${esc(c.due)}">${c.box}</span>` : ''; }).join(' ');
     const tr = document.createElement('tr');
     tr.innerHTML = `<td><b>${esc(e.fr)}</b>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}<span class="small muted" style="display:block">U${e.unit} · ${esc(e.section)}</span></td>
       <td>${esc(e.de)}</td>
       <td class="small">${esc(e.example_fr || '')}${e.example_de ? `<br><span class="muted">${esc(e.example_de)}</span>` : ''}${e.example2_fr ? `<br>${esc(e.example2_fr)}<br><span class="muted">${esc(e.example2_de || '')}</span>` : ''}</td>
-      <td>${state.introduced[e.id] ? boxes : '<span class="small muted">–</span>'}</td>`;
+      <td>${boxes || '<span class="small muted">–</span>'}${isError(e) ? '<span class="chip err">Fehler</span>' : ''}</td>`;
     tb.appendChild(tr);
   }
-  $('cahierCount').textContent = `${n} von ${ENTRIES.filter(unitActive).length} Einträgen (aktive Unités)`;
+  $('cahierCount').textContent = `${n} von ${ENTRIES.length} Einträgen`;
 }
-$('filter').addEventListener('input', renderCahier);
-$('onlyIntro').addEventListener('change', renderCahier);
+$('filter').addEventListener('input', renderCahier); $('onlyErrors').addEventListener('change', renderCahier);
 
-/* ---------- Einstellungen ---------- */
-document.querySelectorAll('[data-dir]').forEach(cb => {
-  cb.checked = !!settings.dirs[cb.dataset.dir];
-  cb.addEventListener('change', () => { settings.dirs[cb.dataset.dir] = cb.checked; saveSettings(); ENTRIES.forEach(e => state.introduced[e.id] && ensureCards(e)); saveState(); renderDash(); renderCahier(); });
-});
-$('newPerDay').value = settings.newPerDay;
-$('newPerDay').addEventListener('change', () => { settings.newPerDay = Math.max(0, Math.min(50, parseInt($('newPerDay').value, 10) || 0)); saveSettings(); renderDash(); });
-$('maxReviews').value = settings.maxReviews;
-$('maxReviews').addEventListener('change', () => { settings.maxReviews = Math.max(5, Math.min(500, parseInt($('maxReviews').value, 10) || 60)); saveSettings(); });
+/* ---------- Lernstand sichern ---------- */
 $('btnExport').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ exported: new Date().toISOString(), vocabVersion: VOCAB?.version, state, settings }, null, 1)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ exported: new Date().toISOString(), vocabVersion: VOCAB?.version, state, rounds, settings }, null, 1)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `words-are-magic-lernstand-${todayStr()}.json`; a.click(); URL.revokeObjectURL(a.href);
 });
 $('fileState').addEventListener('change', async ev => {
   const f = ev.target.files[0]; if (!f) return;
   try {
-    const d = JSON.parse(await f.text());
-    if (!d.state || !d.state.cards) throw new Error('kein Lernstand in der Datei');
+    const d = JSON.parse(await f.text()); if (!d.state || !d.state.cards) throw new Error('kein Lernstand in der Datei');
     if (!confirm('Lernstand aus Datei übernehmen? Der aktuelle Stand in diesem Browser wird ersetzt.')) return;
-    state = d.state; if (d.settings) settings = Object.assign(settings, d.settings); saveState(); saveSettings(); location.reload();
+    state = d.state; rounds = d.rounds || {}; if (d.settings) settings = Object.assign(settings, d.settings); saveState(); saveRounds(); saveSettings(); location.reload();
   } catch(e){ alert('Import fehlgeschlagen: ' + e.message); }
   ev.target.value = '';
 });
-$('btnReset').addEventListener('click', () => {
-  if (!confirm('Wirklich den gesamten Lernstand löschen?')) return;
-  state = { cards: {}, introduced: {}, log: [] }; saveState(); renderDash(); renderCahier();
-});
+$('btnReset').addEventListener('click', () => { if (!confirm('Wirklich den gesamten Lernstand löschen?')) return; state = { cards: {}, log: [] }; rounds = {}; saveState(); saveRounds(); stopRound(); renderCahier(); });
 
 /* ---------- Tabs ---------- */
-$('nav').addEventListener('click', ev => {
+$('tabs').addEventListener('click', ev => {
   const b = ev.target.closest('[data-tab]'); if (!b) return;
-  document.querySelectorAll('#nav [role=tab]').forEach(x => x.setAttribute('aria-selected', x === b));
-  ['learn','cahier','settings'].forEach(t => $('tab-' + t).hidden = (t !== b.dataset.tab));
+  document.querySelectorAll('#tabs [role=tab]').forEach(x => x.setAttribute('aria-selected', x === b));
+  ['learn','cahier','tips','settings'].forEach(t => $('tab-' + t).hidden = (t !== b.dataset.tab));
   if (b.dataset.tab === 'cahier') renderCahier();
 });
 
