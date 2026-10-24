@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+.playwright/
+words-are-magic-lernstand-*.json

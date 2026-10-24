@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Words are magic</title>
+<meta name="description" content="Vokabeltrainer Französisch–Deutsch für À plus! 3 (Unité 1). Liest vocab.json, speichert den Lernstand im Browser.">
+<style>
+  :root{
+    --bg:#f7f4ee; --paper:#fffdf8; --ink:#1f2328; --muted:#6b6f76; --line:#e2ddd3;
+    --accent:#2b5fd9; --accent-ink:#ffffff; --ok:#1f8a4c; --okbg:#e6f4ea;
+    --near:#b7791f; --nearbg:#fdf3dd; --bad:#c23b3b; --badbg:#fbe7e7;
+    --radius:14px; --shadow:0 1px 2px rgba(0,0,0,.06),0 6px 20px rgba(0,0,0,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15171a; --paper:#1e2125; --ink:#ecebe7; --muted:#9a9ea6; --line:#31353b;
+      --accent:#7ea2ff; --accent-ink:#0e1220; --ok:#5fcb86; --okbg:#153323;
+      --near:#e4b35c; --nearbg:#3a2f15; --bad:#ff7b7b; --badbg:#3c1d1d;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15171a; --paper:#1e2125; --ink:#ecebe7; --muted:#9a9ea6; --line:#31353b;
+    --accent:#7ea2ff; --accent-ink:#0e1220; --ok:#5fcb86; --okbg:#153323;
+    --near:#e4b35c; --nearbg:#3a2f15; --bad:#ff7b7b; --badbg:#3c1d1d;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  body{min-height:100vh;display:flex;flex-direction:column}
+  header{padding:14px 16px 8px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  header h1{font-size:1.15rem;margin:0;letter-spacing:.2px}
+  header h1 small{color:var(--muted);font-weight:400;margin-left:8px;font-size:.85rem}
+  nav{display:flex;gap:6px;padding:0 16px 10px;overflow-x:auto;scrollbar-width:none}
+  nav::-webkit-scrollbar{display:none}
+  nav button{flex:0 0 auto;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer;font-size:.95rem}
+  nav button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  main{flex:1;padding:0 16px 32px;max-width:720px;width:100%;margin:0 auto}
+  [hidden]{display:none !important}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+  .card + .card{margin-top:14px}
+  .muted{color:var(--muted)}
+  .small{font-size:.85rem}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .grow{flex:1 1 auto}
+  button.primary{background:var(--accent);color:var(--accent-ink);border:0;padding:10px 18px;border-radius:10px;font-size:1rem;cursor:pointer}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);padding:9px 14px;border-radius:10px;cursor:pointer;font-size:.95rem}
+  button:disabled{opacity:.5;cursor:default}
+  .prompt-label{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .prompt{font-size:1.75rem;margin:6px 0 14px;font-weight:600;overflow-wrap:anywhere}
+  .prompt.ipa{font-family:"Charis SIL","Doulos SIL","Gentium Plus","Noto Serif","DejaVu Serif",serif;font-weight:500}
+  .prompt .pos{font-size:.9rem;color:var(--muted);font-weight:400;margin-left:8px}
+  input[type=text]{width:100%;font-size:1.25rem;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);outline:none}
+  input[type=text]:focus{border-color:var(--accent)}
+  .accents{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+  .accents button{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;min-width:38px;padding:6px 8px;font-size:1.05rem;cursor:pointer}
+  .verdict{margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid transparent}
+  .verdict.ok{background:var(--okbg);border-color:var(--ok)}
+  .verdict.near{background:var(--nearbg);border-color:var(--near)}
+  .verdict.bad{background:var(--badbg);border-color:var(--bad)}
+  .verdict b{display:block;margin-bottom:4px}
+  .reveal{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+  .reveal .fr{font-size:1.35rem;font-weight:600}
+  .reveal .ipa{font-family:"Charis SIL","Doulos SIL","Gentium Plus","Noto Serif","DejaVu Serif",serif;color:var(--muted);margin-left:8px}
+  .reveal .de{margin-top:2px}
+  .reveal .ex{margin-top:10px;padding-left:12px;border-left:3px solid var(--line)}
+  .reveal .ex .d{color:var(--muted);font-size:.95rem}
+  .diff{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.05rem}
+  .diff del{background:var(--badbg);text-decoration:line-through;color:var(--bad)}
+  .diff ins{background:var(--okbg);text-decoration:none;color:var(--ok)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+  .stat{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .stat .n{font-size:1.5rem;font-weight:700}
+  .stat .l{font-size:.8rem;color:var(--muted)}
+  .progress{height:8px;background:var(--line);border-radius:999px;overflow:hidden;margin:8px 0}
+  .progress i{display:block;height:100%;background:var(--accent);width:0}
+  table{width:100%;border-collapse:collapse;font-size:.95rem}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  td .ipa{font-family:"Charis SIL","Doulos SIL","Gentium Plus","Noto Serif","DejaVu Serif",serif;color:var(--muted);display:block;font-size:.9rem}
+  .box{display:inline-block;min-width:22px;text-align:center;border-radius:6px;padding:0 6px;font-size:.8rem;background:var(--line)}
+  .box.b0{background:var(--badbg);color:var(--bad)} .box.b1,.box.b2{background:var(--nearbg);color:var(--near)} .box.b3,.box.b4,.box.b5{background:var(--okbg);color:var(--ok)}
+  label.chk{display:flex;gap:8px;align-items:center;padding:6px 0}
+  .banner{padding:10px 14px;border-radius:10px;background:var(--nearbg);border:1px solid var(--near);margin-bottom:14px}
+  .banner.err{background:var(--badbg);border-color:var(--bad)}
+  kbd{font:.8rem ui-monospace,monospace;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px;background:var(--bg)}
+  .dirtag{font-size:.75rem;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--ink);margin-left:8px;vertical-align:middle}
+  details summary{cursor:pointer;color:var(--muted)}
+  textarea{width:100%;min-height:90px;font:.85rem ui-monospace,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
+  footer{padding:10px 16px 20px;color:var(--muted);font-size:.8rem;text-align:center}
+  @media (max-width:420px){ .prompt{font-size:1.5rem} }
+</style>
+</head>
+<body>
+<header>
+  <h1>Words are magic <small id="srcLabel"></small></h1>
+  <div class="small muted" id="dateLabel"></div>
+</header>
+<nav role="tablist" id="nav">
+  <button role="tab" data-tab="learn" aria-selected="true">Lernen</button>
+  <button role="tab" data-tab="cahier">Cahier</button>
+  <button role="tab" data-tab="settings">Einstellungen</button>
+</nav>
+<main>
+  <div id="loadBanner" hidden></div>
+
+  <!-- ============ LERNEN ============ -->
+  <section id="tab-learn">
+    <div class="card" id="dash">
+      <div class="stats">
+        <div class="stat"><div class="n" id="stDue">–</div><div class="l">fällig</div></div>
+        <div class="stat"><div class="n" id="stNew">–</div><div class="l">neu heute</div></div>
+        <div class="stat"><div class="n" id="stKnown">–</div><div class="l">eingeführt</div></div>
+        <div class="stat"><div class="n" id="stTotal">–</div><div class="l">Wörter gesamt</div></div>
+      </div>
+      <div class="progress"><i id="progBar"></i></div>
+      <div class="row" style="margin-top:12px">
+        <button class="primary" id="btnStart">Session starten</button>
+        <span class="small muted" id="dashHint"></span>
+      </div>
+    </div>
+
+    <div class="card" id="quiz" hidden>
+      <div class="row">
+        <span class="small muted grow" id="qCounter"></span>
+        <button class="ghost small" id="btnStop">Session beenden</button>
+      </div>
+      <div class="prompt-label" id="qLabel"></div>
+      <div class="prompt" id="qPrompt"></div>
+
+      <div id="typeBox">
+        <input type="text" id="answer" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Französisch eintippen …" aria-label="Antwort">
+        <div class="accents" id="accents"></div>
+        <div class="row" style="margin-top:8px">
+          <button class="primary" id="btnCheck">Prüfen</button>
+          <button class="ghost" id="btnShow">Zeigen</button>
+          <span class="small muted">Enter = prüfen · Enter nochmal = weiter</span>
+        </div>
+      </div>
+
+      <div id="revealBox">
+        <div class="row" style="margin-top:4px">
+          <button class="primary" id="btnFlip">Aufdecken</button>
+          <span class="small muted">Leertaste = aufdecken</span>
+        </div>
+      </div>
+
+      <div id="verdict" class="verdict" hidden></div>
+      <div id="reveal" class="reveal" hidden></div>
+
+      <div class="row" id="judgeRow" hidden style="margin-top:12px">
+        <button class="ghost" id="btnWrong">✗ Falsch</button>
+        <button class="primary" id="btnRight">✓ Gewusst</button>
+        <span class="small muted"><kbd>1</kbd> falsch · <kbd>2</kbd> gewusst</span>
+      </div>
+      <div class="row" id="nextRow" hidden style="margin-top:12px">
+        <button class="primary" id="btnNext">Weiter</button>
+      </div>
+    </div>
+
+    <div class="card" id="done" hidden>
+      <h2 style="margin:0 0 6px">Session fertig</h2>
+      <div id="doneText"></div>
+      <div class="row" style="margin-top:12px"><button class="primary" id="btnAgain">Nochmal</button></div>
+    </div>
+  </section>
+
+  <!-- ============ CAHIER ============ -->
+  <section id="tab-cahier" hidden>
+    <div class="card">
+      <div class="row">
+        <input type="text" id="filter" placeholder="Suchen … (fr, de, Tag)" style="font-size:1rem;flex:1">
+        <label class="chk small"><input type="checkbox" id="onlyIntro"> nur eingeführte</label>
+      </div>
+      <div class="small muted" style="margin-top:6px" id="cahierCount"></div>
+      <table style="margin-top:8px">
+        <thead><tr><th>Französisch</th><th>Deutsch</th><th>Beispiel</th><th>Stand</th></tr></thead>
+        <tbody id="cahierBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ EINSTELLUNGEN ============ -->
+  <section id="tab-settings" hidden>
+    <div class="card">
+      <h2 style="margin:0 0 8px;font-size:1.05rem">Abfragerichtungen</h2>
+      <label class="chk"><input type="checkbox" data-dir="de_fr" checked> Deutsch → Französisch <span class="small muted">(tippen)</span></label>
+      <label class="chk"><input type="checkbox" data-dir="fr_de" checked> Französisch → Deutsch <span class="small muted">(aufdecken, selbst bewerten)</span></label>
+      <label class="chk"><input type="checkbox" data-dir="ipa_fr" checked> Lautschrift → Schreibweise <span class="small muted">(tippen; nur Einträge mit IPA, keine Eigennamen)</span></label>
+    </div>
+    <div class="card">
+      <h2 style="margin:0 0 8px;font-size:1.05rem">Lernplan</h2>
+      <div class="row">
+        <label for="newPerDay">Neue Wörter pro Tag</label>
+        <input type="number" id="newPerDay" min="0" max="50" value="8" style="width:80px;font-size:1rem;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
+      </div>
+      <div class="row" style="margin-top:8px">
+        <label for="maxReviews">Maximal Wiederholungen pro Session</label>
+        <input type="number" id="maxReviews" min="5" max="500" value="60" style="width:80px;font-size:1rem;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
+      </div>
+      <p class="small muted" style="margin:10px 0 0">Neue Wörter werden in der Reihenfolge des Buchs freigeschaltet (Unité, dann <code>order</code>). Wiederholungen kommen nach Leitner-Stufen: 0 → sofort, 1 → 1 Tag, 2 → 3 Tage, 3 → 7, 4 → 14, 5 → 30 Tage.</p>
+    </div>
+    <div class="card">
+      <h2 style="margin:0 0 8px;font-size:1.05rem">Daten</h2>
+      <div class="small" id="dataInfo"></div>
+      <div class="row" style="margin-top:10px">
+        <label class="ghost" style="cursor:pointer">vocab.json laden <input type="file" id="fileVocab" accept=".json,application/json" hidden></label>
+        <button class="ghost" id="btnReload">Neu laden</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2 style="margin:0 0 8px;font-size:1.05rem">Lernstand</h2>
+      <p class="small muted" style="margin:0 0 8px">Der Lernstand liegt nur in diesem Browser. Zum Umziehen auf ein anderes Gerät exportieren und dort importieren.</p>
+      <div class="row">
+        <button class="ghost" id="btnExport">Exportieren</button>
+        <label class="ghost" style="cursor:pointer">Importieren <input type="file" id="fileState" accept=".json,application/json" hidden></label>
+        <button class="ghost" id="btnReset" style="color:var(--bad)">Zurücksetzen</button>
+      </div>
+      <details style="margin-top:10px"><summary class="small">Theme</summary>
+        <div class="row" style="margin-top:6px">
+          <button class="ghost" data-theme="auto">Auto</button>
+          <button class="ghost" data-theme="light">Hell</button>
+          <button class="ghost" data-theme="dark">Dunkel</button>
+        </div>
+      </details>
+    </div>
+  </section>
+</main>
+<footer>Daten aus <code>vocab.json</code> (Schema 1). Lautschrift ist Standard-IPA als Lernhilfe.</footer>
+
+<script>
+'use strict';
+/* =====================================================================
+   Words are magic – Vokabeltrainer
+   Liest vocab.json (Vertrag: vocab-schema.md). Lernstand in localStorage,
+   geschlüsselt an entry.id + Richtung. Keine Abhängigkeiten.
+   ===================================================================== */
+
+const DIRS = {
+  de_fr: { label: 'Deutsch → Französisch', typed: true },
+  fr_de: { label: 'Französisch → Deutsch', typed: false },
+  ipa_fr:{ label: 'Lautschrift → Schreibweise', typed: true },
+};
+const INTERVALS = [0, 1, 3, 7, 14, 30]; // Tage je Leitner-Stufe
+const MAXBOX = INTERVALS.length - 1;
+const LS_STATE = 'wam:state:v1';
+const LS_SETTINGS = 'wam:settings:v1';
+const LS_VOCAB = 'wam:vocab:v1';   // Kopie einer per Datei geladenen vocab.json
+
+const $ = id => document.getElementById(id);
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const addDays = (ymd, n) => { const [y,m,d] = ymd.split('-').map(Number); const dt = new Date(y, m-1, d + n); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`; };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle = a => { for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+let VOCAB = null;          // { schema, source, version, changelog, entries }
+let ENTRIES = [];          // sortiert nach unit, order
+let BYID = new Map();
+let state = loadJSON(LS_STATE) || { cards: {}, introduced: {}, log: [] };
+let settings = Object.assign({ dirs: { de_fr:true, fr_de:true, ipa_fr:true }, newPerDay: 8, maxReviews: 60, theme: 'auto' }, loadJSON(LS_SETTINGS) || {});
+
+function loadJSON(k){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch(e){ return null; } }
+function saveJSON(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){ /* privat/voll: still weiter */ } }
+const saveState = () => saveJSON(LS_STATE, state);
+const saveSettings = () => saveJSON(LS_SETTINGS, settings);
+
+/* ---------- Theme ---------- */
+function applyTheme(){
+  const t = settings.theme || 'auto';
+  if (t === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+}
+document.querySelectorAll('[data-theme]').forEach(b => b.addEventListener('click', () => { settings.theme = b.dataset.theme; saveSettings(); applyTheme(); }));
+applyTheme();
+
+/* ---------- Laden von vocab.json ---------- */
+async function loadVocab(){
+  $('loadBanner').hidden = true;
+  let data = null, origin = '';
+  try {
+    const r = await fetch('vocab.json', { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    data = await r.json(); origin = 'vocab.json';
+  } catch (e) {
+    const cached = loadJSON(LS_VOCAB);
+    if (cached) { data = cached; origin = 'gespeicherte Kopie'; }
+    else {
+      showBanner('err', `Konnte <code>vocab.json</code> nicht laden (${esc(e.message)}). Wenn die Seite als Datei geöffnet ist, bitte unter <b>Einstellungen → Daten</b> die Datei auswählen.`);
+      return;
+    }
+  }
+  setVocab(data, origin);
+}
+function showBanner(kind, html){ const b = $('loadBanner'); b.className = 'banner ' + (kind === 'err' ? 'err' : ''); b.innerHTML = html; b.hidden = false; }
+
+function setVocab(data, origin){
+  const err = checkVocab(data);
+  if (err) { showBanner('err', 'vocab.json entspricht nicht dem Schema: ' + esc(err)); return; }
+  VOCAB = data;
+  ENTRIES = [...data.entries].sort((a,b) => a.unit - b.unit || a.order - b.order);
+  BYID = new Map(ENTRIES.map(e => [e.id, e]));
+  $('srcLabel').textContent = `${data.source || ''} · v${data.version || '?'}`;
+  const sample = data.entries.some(e => e.editorial && /beispieldaten/i.test(e.editorial));
+  if (sample) showBanner('warn', 'Diese Datei enthält nur <b>Beispieldaten</b>. Die echte <code>vocab.json</code> kommt aus der Masterliste.');
+  $('dataInfo').innerHTML = `Quelle: ${esc(data.source)}<br>Version: <b>${esc(data.version)}</b> · ${data.entries.length} Einträge · geladen aus: ${esc(origin)}` +
+    (Array.isArray(data.changelog) && data.changelog.length ? `<details style="margin-top:6px"><summary>Changelog</summary><ul class="small">${data.changelog.map(c => `<li><b>${esc(c.version)}</b> – ${esc(c.note)}</li>`).join('')}</ul></details>` : '');
+  renderDash(); renderCahier();
+}
+/* Leichte Prüfung; das strenge Prüfskript ist validate_vocab.py */
+function checkVocab(d){
+  if (!d || typeof d !== 'object') return 'kein Objekt';
+  if (d.schema !== 1) return 'schema ≠ 1';
+  if (!Array.isArray(d.entries)) return 'entries fehlt';
+  const ids = new Set();
+  for (const e of d.entries){
+    for (const f of ['id','unit','section','order','fr','fr_accept','de','pos','tags','proper_name'])
+      if (e[f] === undefined || e[f] === null) return `Eintrag ${e.id || '?'}: Feld ${f} fehlt`;
+    if (ids.has(e.id)) return `ID doppelt: ${e.id}`; ids.add(e.id);
+    if (!Array.isArray(e.fr_accept) || !e.fr_accept.includes(e.fr)) return `${e.id}: fr nicht in fr_accept`;
+  }
+  return null;
+}
+$('fileVocab').addEventListener('change', async ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  try { const data = JSON.parse(await f.text()); saveJSON(LS_VOCAB, data); setVocab(data, f.name); }
+  catch(e){ showBanner('err', 'Datei ist kein gültiges JSON: ' + esc(e.message)); }
+  ev.target.value = '';
+});
+$('btnReload').addEventListener('click', loadVocab);
+
+/* ---------- Lernstand ---------- */
+function cardKey(id, dir){ return id + '|' + dir; }
+function getCard(id, dir){ return state.cards[cardKey(id, dir)] || null; }
+function dirApplies(e, dir){
+  if (!settings.dirs[dir]) return false;
+  if (dir === 'ipa_fr') return !!e.ipa && !e.proper_name;
+  return true;
+}
+function ensureCards(e){
+  for (const dir of Object.keys(DIRS)){
+    if (!dirApplies(e, dir)) continue;
+    const k = cardKey(e.id, dir);
+    if (!state.cards[k]) state.cards[k] = { box: 0, due: todayStr(), seen: 0, right: 0, wrong: 0, near: 0 };
+  }
+}
+function introduceNew(limit){
+  const t = todayStr();
+  const already = Object.values(state.introduced).filter(d => d === t).length;
+  let budget = Math.max(0, limit - already);
+  const out = [];
+  for (const e of ENTRIES){
+    if (budget <= 0) break;
+    if (state.introduced[e.id]) continue;
+    state.introduced[e.id] = t; ensureCards(e); out.push(e); budget--;
+  }
+  if (out.length) saveState();
+  return out;
+}
+function dueCards(){
+  const t = todayStr(); const out = [];
+  for (const [k, c] of Object.entries(state.cards)){
+    const [id, dir] = k.split('|'); const e = BYID.get(id);
+    if (!e || !dirApplies(e, dir)) continue;
+    if (c.due <= t) out.push({ e, dir, c });
+  }
+  return out;
+}
+function grade(card, result){ // result: 'ok' | 'near' | 'bad'
+  card.seen++;
+  if (result === 'ok'){ card.right++; card.box = Math.min(MAXBOX, card.box + 1); }
+  else if (result === 'near'){ card.near++; /* Stufe bleibt */ }
+  else { card.wrong++; card.box = 0; }
+  card.due = addDays(todayStr(), INTERVALS[card.box]);
+  card.last = todayStr();
+  state.log.push([todayStr(), result]); if (state.log.length > 5000) state.log.splice(0, state.log.length - 5000);
+  saveState();
+}
+
+/* ---------- Vergleich der getippten Eingabe ---------- */
+const ARTICLES = /^((le|la|les|un|une|des)\s+|l')/i;
+function norm(s, { accents = true } = {}){
+  let x = String(s).trim().toLowerCase()
+    .replace(/[’‘ʼ`´]/g, "'")   // typografische Apostrophe
+    .replace(/\s*'\s*/g, "'")                   // Leerzeichen um Apostroph
+    .replace(/\s+/g, ' ')
+    .replace(/\s*-\s*/g, '-');
+  if (!accents){ x = x.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/ç/g, 'c'); }
+  return x;
+}
+function compare(input, entry){
+  const given = input.trim();
+  if (!given) return { result: 'bad', why: 'Keine Eingabe.' };
+  const acc = entry.fr_accept;
+  if (acc.some(a => norm(a) === norm(given))) return { result: 'ok', why: 'Richtig.' };
+  if (acc.some(a => norm(a, {accents:false}) === norm(given, {accents:false}))) {
+    const best = acc.find(a => norm(a, {accents:false}) === norm(given, {accents:false}));
+    return { result: 'near', why: 'Fast richtig – Akzente oder Schreibweise prüfen.', target: best };
+  }
+  if (entry.pos === 'noun'){
+    const strip = s => norm(s, {accents:false}).replace(ARTICLES, '').replace(/\s*\((m|f)\)$/, '');
+    if (acc.some(a => strip(a) === strip(given))) return { result: 'bad', why: 'Artikel fehlt oder ist falsch – das zählt als Fehler.', target: acc[0] };
+  }
+  return { result: 'bad', why: 'Leider falsch.', target: acc[0] };
+}
+/* kleine Zeichen-Diff für die Anzeige (LCS) */
+function diffHTML(a, b){
+  const A = [...a], B = [...b], n = A.length, m = B.length;
+  const L = Array.from({length:n+1}, () => new Uint16Array(m+1));
+  for (let i=n-1;i>=0;i--) for (let j=m-1;j>=0;j--) L[i][j] = A[i]===B[j] ? L[i+1][j+1]+1 : Math.max(L[i+1][j], L[i][j+1]);
+  let i=0,j=0,out='';
+  while (i<n && j<m){
+    if (A[i]===B[j]){ out += esc(A[i]); i++; j++; }
+    else if (L[i+1][j] >= L[i][j+1]){ out += `<del>${esc(A[i])}</del>`; i++; }
+    else { out += `<ins>${esc(B[j])}</ins>`; j++; }
+  }
+  while (i<n) out += `<del>${esc(A[i++])}</del>`;
+  while (j<m) out += `<ins>${esc(B[j++])}</ins>`;
+  return `<span class="diff">${out}</span>`;
+}
+
+/* ---------- Dashboard ---------- */
+function renderDash(){
+  if (!VOCAB) return;
+  const due = dueCards().length;
+  const t = todayStr();
+  const newToday = Object.values(state.introduced).filter(d => d === t).length;
+  const intro = Object.keys(state.introduced).filter(id => BYID.has(id)).length;
+  const remainingNew = Math.max(0, settings.newPerDay - newToday);
+  const notYet = ENTRIES.filter(e => !state.introduced[e.id]).length;
+  $('stDue').textContent = due;
+  $('stNew').textContent = `${newToday}/${settings.newPerDay}`;
+  $('stKnown').textContent = intro;
+  $('stTotal').textContent = ENTRIES.length;
+  $('progBar').style.width = (ENTRIES.length ? 100*intro/ENTRIES.length : 0) + '%';
+  const plan = [];
+  if (due) plan.push(`${due} Wiederholung${due===1?'':'en'}`);
+  if (remainingNew && notYet) plan.push(`${Math.min(remainingNew, notYet)} neue Wörter`);
+  $('dashHint').textContent = plan.length ? 'Heute: ' + plan.join(' + ') : (notYet ? 'Heute ist alles erledigt.' : 'Alle Wörter eingeführt – nur noch Wiederholungen.');
+  $('btnStart').disabled = !(due || (remainingNew && notYet));
+  $('dateLabel').textContent = new Date().toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long' });
+}
+
+/* ---------- Session ---------- */
+let queue = [], cur = null, phase = 'ask', sessionStats = { ok:0, near:0, bad:0, n:0 };
+let awaitingNext = false;
+
+function startSession(){
+  sessionStats = { ok:0, near:0, bad:0, n:0 };
+  // 1) fällige Wiederholungen (gemischt), 2) neue Wörter – erst Lesen, dann Üben
+  const reviews = shuffle(dueCards()).slice(0, settings.maxReviews);
+  const fresh = introduceNew(settings.newPerDay);
+  const newCards = [];
+  for (const e of fresh) for (const dir of Object.keys(DIRS)) if (dirApplies(e, dir)) newCards.push({ e, dir, c: getCard(e.id, dir), fresh: true });
+  queue = [...reviews, ...newCards];
+  if (!queue.length){ renderDash(); return; }
+  $('dash').hidden = true; $('done').hidden = true; $('quiz').hidden = false;
+  nextCard();
+}
+function stopSession(){ queue = []; cur = null; $('quiz').hidden = true; $('dash').hidden = false; renderDash(); renderCahier(); }
+function nextCard(){
+  if (!queue.length){ return finishSession(); }
+  cur = queue.shift(); phase = 'ask'; awaitingNext = false;
+  const { e, dir } = cur;
+  $('qCounter').innerHTML = `${sessionStats.n + 1} · noch ${queue.length} ${cur.fresh ? '<span class="dirtag">neu</span>' : ''}`;
+  $('qLabel').innerHTML = esc(DIRS[dir].label) + (e.section ? ` <span class="muted">· U${e.unit} ${esc(e.section)}</span>` : '');
+  const p = $('qPrompt'); p.className = 'prompt' + (dir === 'ipa_fr' ? ' ipa' : '');
+  if (dir === 'de_fr') p.innerHTML = esc(e.de);
+  else if (dir === 'fr_de') p.innerHTML = esc(e.fr);
+  else p.innerHTML = '[' + esc(e.ipa) + ']';
+  $('verdict').hidden = true; $('reveal').hidden = true; $('judgeRow').hidden = true; $('nextRow').hidden = true;
+  if (DIRS[dir].typed){ $('typeBox').hidden = false; $('revealBox').hidden = true; $('answer').value = ''; $('answer').disabled = false; setTimeout(() => $('answer').focus(), 30); }
+  else { $('typeBox').hidden = true; $('revealBox').hidden = false; }
+}
+function renderReveal(e){
+  const ex = e.example_fr ? `<div class="ex">${esc(e.example_fr)}<div class="d">${esc(e.example_de || '')}</div></div>` : '';
+  $('reveal').innerHTML = `<div><span class="fr">${esc(e.fr)}</span>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}</div><div class="de">${esc(e.de)}</div>${ex}`;
+  $('reveal').hidden = false;
+}
+function checkAnswer(){
+  if (phase !== 'ask') return;
+  const { e, dir, c } = cur;
+  const r = compare($('answer').value, e);
+  phase = 'done';
+  const v = $('verdict'); v.className = 'verdict ' + r.result; v.hidden = false;
+  let body = `<b>${esc(r.why)}</b>`;
+  if (r.result !== 'ok') body += `Du: ${diffHTML($('answer').value.trim(), r.target || e.fr)}`;
+  v.innerHTML = body;
+  renderReveal(e);
+  $('answer').disabled = true;
+  grade(c, r.result); sessionStats[r.result]++; sessionStats.n++;
+  if (r.result === 'bad') queue.push({ ...cur, fresh: false }); // nochmal in dieser Session
+  $('nextRow').hidden = false; awaitingNext = true; $('btnNext').focus();
+}
+function showAnswer(){ // "Zeigen" = aufgeben, zählt als falsch
+  if (phase !== 'ask') return;
+  const { e, c } = cur; phase = 'done';
+  const v = $('verdict'); v.className = 'verdict bad'; v.hidden = false; v.innerHTML = '<b>Angezeigt – zählt als falsch.</b>';
+  renderReveal(e); $('answer').disabled = true;
+  grade(c, 'bad'); sessionStats.bad++; sessionStats.n++;
+  queue.push({ ...cur, fresh: false });
+  $('nextRow').hidden = false; awaitingNext = true; $('btnNext').focus();
+}
+function flip(){
+  if (phase !== 'ask') return;
+  phase = 'judge'; renderReveal(cur.e); $('revealBox').hidden = true; $('judgeRow').hidden = false; $('btnRight').focus();
+}
+function judge(ok){
+  if (phase !== 'judge') return;
+  phase = 'done';
+  grade(cur.c, ok ? 'ok' : 'bad'); sessionStats[ok ? 'ok' : 'bad']++; sessionStats.n++;
+  if (!ok) queue.push({ ...cur, fresh: false });
+  nextCard();
+}
+function finishSession(){
+  $('quiz').hidden = true; $('done').hidden = false;
+  const s = sessionStats;
+  $('doneText').innerHTML = `${s.n} Karten · <span style="color:var(--ok)">${s.ok} richtig</span> · <span style="color:var(--near)">${s.near} fast</span> · <span style="color:var(--bad)">${s.bad} falsch</span>`;
+  renderDash(); renderCahier();
+}
+$('btnStart').addEventListener('click', startSession);
+$('btnAgain').addEventListener('click', () => { $('done').hidden = true; $('dash').hidden = false; renderDash(); });
+$('btnStop').addEventListener('click', stopSession);
+$('btnCheck').addEventListener('click', checkAnswer);
+$('btnShow').addEventListener('click', showAnswer);
+$('btnFlip').addEventListener('click', flip);
+$('btnRight').addEventListener('click', () => judge(true));
+$('btnWrong').addEventListener('click', () => judge(false));
+$('btnNext').addEventListener('click', nextCard);
+$('answer').addEventListener('keydown', ev => { if (ev.key === 'Enter'){ ev.preventDefault(); ev.stopPropagation(); checkAnswer(); } });
+document.addEventListener('keydown', ev => {
+  if ($('quiz').hidden) return;
+  const inInput = ev.target === $('answer');
+  if (ev.key === 'Enter' && awaitingNext){ ev.preventDefault(); nextCard(); return; }
+  if (inInput) return;
+  if (ev.key === ' ' && phase === 'ask' && !DIRS[cur.dir].typed){ ev.preventDefault(); flip(); }
+  if (phase === 'judge' && ev.key === '1'){ judge(false); }
+  if (phase === 'judge' && ev.key === '2'){ judge(true); }
+});
+/* Akzent-Tasten */
+(function(){
+  const chars = ['é','è','ê','ë','à','â','ç','î','ï','ô','û','ù','ü','œ','’'];
+  const box = $('accents');
+  chars.forEach(ch => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = ch === '’' ? "'" : ch;
+    b.addEventListener('mousedown', ev => ev.preventDefault());
+    b.addEventListener('click', () => {
+      const inp = $('answer'); if (inp.disabled) return;
+      const s = inp.selectionStart ?? inp.value.length, e2 = inp.selectionEnd ?? s;
+      const ins = ch === '’' ? "'" : ch;
+      inp.value = inp.value.slice(0, s) + ins + inp.value.slice(e2);
+      inp.selectionStart = inp.selectionEnd = s + ins.length; inp.focus();
+    });
+    box.appendChild(b);
+  });
+})();
+
+/* ---------- Cahier ---------- */
+function renderCahier(){
+  if (!VOCAB) return;
+  const q = norm($('filter').value || '', {accents:false});
+  const only = $('onlyIntro').checked;
+  const tb = $('cahierBody'); tb.innerHTML = '';
+  let n = 0;
+  for (const e of ENTRIES){
+    if (only && !state.introduced[e.id]) continue;
+    if (q && !(norm(e.fr,{accents:false}).includes(q) || norm(e.de,{accents:false}).includes(q) || (e.tags||[]).some(t => norm(t,{accents:false}).includes(q)))) continue;
+    n++;
+    const boxes = Object.keys(DIRS).filter(d => dirApplies(e, d)).map(d => { const c = getCard(e.id, d); return c ? `<span class="box b${c.box}" title="${esc(DIRS[d].label)} · fällig ${esc(c.due)}">${c.box}</span>` : ''; }).join(' ');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><b>${esc(e.fr)}</b>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}</td>
+      <td>${esc(e.de)}</td>
+      <td class="small">${esc(e.example_fr || '')}${e.example_de ? `<br><span class="muted">${esc(e.example_de)}</span>` : ''}</td>
+      <td>${state.introduced[e.id] ? boxes : '<span class="small muted">–</span>'}</td>`;
+    tb.appendChild(tr);
+  }
+  $('cahierCount').textContent = `${n} von ${ENTRIES.length} Einträgen`;
+}
+$('filter').addEventListener('input', renderCahier);
+$('onlyIntro').addEventListener('change', renderCahier);
+
+/* ---------- Einstellungen ---------- */
+document.querySelectorAll('[data-dir]').forEach(cb => {
+  cb.checked = !!settings.dirs[cb.dataset.dir];
+  cb.addEventListener('change', () => { settings.dirs[cb.dataset.dir] = cb.checked; saveSettings(); ENTRIES.forEach(e => state.introduced[e.id] && ensureCards(e)); saveState(); renderDash(); renderCahier(); });
+});
+$('newPerDay').value = settings.newPerDay;
+$('newPerDay').addEventListener('change', () => { settings.newPerDay = Math.max(0, Math.min(50, parseInt($('newPerDay').value, 10) || 0)); saveSettings(); renderDash(); });
+$('maxReviews').value = settings.maxReviews;
+$('maxReviews').addEventListener('change', () => { settings.maxReviews = Math.max(5, Math.min(500, parseInt($('maxReviews').value, 10) || 60)); saveSettings(); });
+$('btnExport').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify({ exported: new Date().toISOString(), vocabVersion: VOCAB?.version, state, settings }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `words-are-magic-lernstand-${todayStr()}.json`; a.click(); URL.revokeObjectURL(a.href);
+});
+$('fileState').addEventListener('change', async ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!d.state || !d.state.cards) throw new Error('kein Lernstand in der Datei');
+    if (!confirm('Lernstand aus Datei übernehmen? Der aktuelle Stand in diesem Browser wird ersetzt.')) return;
+    state = d.state; if (d.settings) settings = Object.assign(settings, d.settings); saveState(); saveSettings(); location.reload();
+  } catch(e){ alert('Import fehlgeschlagen: ' + e.message); }
+  ev.target.value = '';
+});
+$('btnReset').addEventListener('click', () => {
+  if (!confirm('Wirklich den gesamten Lernstand löschen?')) return;
+  state = { cards: {}, introduced: {}, log: [] }; saveState(); renderDash(); renderCahier();
+});
+
+/* ---------- Tabs ---------- */
+$('nav').addEventListener('click', ev => {
+  const b = ev.target.closest('[data-tab]'); if (!b) return;
+  document.querySelectorAll('#nav [role=tab]').forEach(x => x.setAttribute('aria-selected', x === b));
+  ['learn','cahier','settings'].forEach(t => $('tab-' + t).hidden = (t !== b.dataset.tab));
+  if (b.dataset.tab === 'cahier') renderCahier();
+});
+
+loadVocab();
+</script>
+</body>
+</html>
