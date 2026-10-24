@@ -16,6 +16,8 @@ Nach jeder Antwort erscheinen Wort, Bedeutung, Lautschrift und Beispielsatz.
 
 Getippte Antworten werden gegen `fr_accept` geprüft. Fehlende oder falsche Akzente, Groß-/Kleinschreibung und Leerzeichen um Apostrophe gelten als **fast richtig** (Karte bleibt auf ihrer Stufe, kommt bald wieder). Fehlender oder falscher Artikel bei Substantiven ist ein **Fehler**. Ein Zeichen-Diff zeigt, was abweicht.
 
+Unter *Einstellungen → Unités* lässt sich eingrenzen, welche Unités gerade aktiv sind; der Lernstand der anderen bleibt liegen.
+
 Lernplan: Neue Wörter werden in Buchreihenfolge (`unit`, dann `order`) freigeschaltet, standardmäßig acht pro Tag. Wiederholungen folgen Leitner-Stufen 0 → sofort, 1 → 1 Tag, 2 → 3 Tage, 3 → 7, 4 → 14, 5 → 30 Tage. Richtig = eine Stufe hoch, falsch = zurück auf 0 und noch einmal in derselben Session.
 
 ## Dateien
@@ -23,9 +25,12 @@ Lernplan: Neue Wörter werden in Buchreihenfolge (`unit`, dann `order`) freigesc
 | Datei | Zweck |
 |---|---|
 | `index.html` | die komplette App |
-| `vocab.json` | die Wortliste – kommt aus der Masterliste, ist hier noch nicht eingecheckt |
+| `vocab.json` | die Wortliste: Unités 1–5, 397 Einträge, aus der Masterliste |
 | `vocab.sample.json` | sechs Beispieleinträge zum Ausprobieren |
 | `docs/vocab-schema.md` | der Vertrag für `vocab.json` (Felder, Regeln, Validierung) |
+| `convert_gpt_export.py` | übersetzt den Export der GPT-/Codex-Sitzung in `vocab.json` |
+| `pos_overrides.json` | Wortart und Genus je ID, redaktionell gesetzt – bitte prüfen |
+| `sections_from_master.json` | Abschnitt je ID aus der Masterliste (für Unité 1 nötig) |
 | `validate_vocab.py` | prüft eine `vocab.json` gegen den Vertrag |
 | `tests_smoke.py` | Browser-Test, spielt eine Session mit den Beispieldaten durch |
 
@@ -39,9 +44,14 @@ Lernplan: Neue Wörter werden in Buchreihenfolge (`unit`, dann `order`) freigesc
 
 ## Wortliste aktualisieren
 
-1. Neue `vocab.json` aus der Masterliste erzeugen; `version` und `changelog` im Kopf nachziehen.
-2. Prüfen: `python validate_vocab.py vocab.json` (Exit-Code 0 = sauber; `--strict` macht Warnungen zu Fehlern).
-3. Datei ins Repo legen und pushen. Die GitHub Action prüft noch einmal.
+Wenn die GPT-/Codex-Sitzung eine neue `A_plus_3_Lernapp_Daten.json` liefert:
+
+```
+python convert_gpt_export.py A_plus_3_Lernapp_Daten.json vocab.json --version 2026-11-01 --note "was sich geändert hat"
+python validate_vocab.py vocab.json
+```
+
+Der Konverter schreibt den `changelog` fort und meldet verschwundene oder neue IDs. Steht am Ende `OK`, Datei pushen; die GitHub Action prüft noch einmal. Neue Einträge ohne Wortart tauchen als `pos: "other"` auf und gehören in `pos_overrides.json`.
 
 IDs bleiben stabil; der Lernstand hängt an `id` + Richtung. Alles andere darf sich ändern, ohne dass Lernstand verloren geht.
 

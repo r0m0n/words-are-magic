@@ -190,6 +190,11 @@
       <label class="chk"><input type="checkbox" data-dir="ipa_fr" checked> Lautschrift → Schreibweise <span class="small muted">(tippen; nur Einträge mit IPA, keine Eigennamen)</span></label>
     </div>
     <div class="card">
+      <h2 style="margin:0 0 8px;font-size:1.05rem">Unités</h2>
+      <div id="unitBoxes" class="row"></div>
+      <p class="small muted" style="margin:8px 0 0">Nur angekreuzte Unités liefern neue Wörter und Wiederholungen. Der Lernstand der anderen bleibt erhalten.</p>
+    </div>
+    <div class="card">
       <h2 style="margin:0 0 8px;font-size:1.05rem">Lernplan</h2>
       <div class="row">
         <label for="newPerDay">Neue Wörter pro Tag</label>
@@ -258,7 +263,7 @@ let VOCAB = null;          // { schema, source, version, changelog, entries }
 let ENTRIES = [];          // sortiert nach unit, order
 let BYID = new Map();
 let state = loadJSON(LS_STATE) || { cards: {}, introduced: {}, log: [] };
-let settings = Object.assign({ dirs: { de_fr:true, fr_de:true, ipa_fr:true }, newPerDay: 8, maxReviews: 60, theme: 'auto' }, loadJSON(LS_SETTINGS) || {});
+let settings = Object.assign({ dirs: { de_fr:true, fr_de:true, ipa_fr:true }, newPerDay: 8, maxReviews: 60, theme: 'auto', units: null }, loadJSON(LS_SETTINGS) || {});
 
 function loadJSON(k){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch(e){ return null; } }
 function saveJSON(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){ /* privat/voll: still weiter */ } }
@@ -305,7 +310,22 @@ function setVocab(data, origin){
   if (sample) showBanner('warn', 'Diese Datei enthält nur <b>Beispieldaten</b>. Die echte <code>vocab.json</code> kommt aus der Masterliste.');
   $('dataInfo').innerHTML = `Quelle: ${esc(data.source)}<br>Version: <b>${esc(data.version)}</b> · ${data.entries.length} Einträge · geladen aus: ${esc(origin)}` +
     (Array.isArray(data.changelog) && data.changelog.length ? `<details style="margin-top:6px"><summary>Changelog</summary><ul class="small">${data.changelog.map(c => `<li><b>${esc(c.version)}</b> – ${esc(c.note)}</li>`).join('')}</ul></details>` : '');
-  renderDash(); renderCahier();
+  renderUnitBoxes(); renderDash(); renderCahier();
+}
+function renderUnitBoxes(){
+  const units = [...new Set(ENTRIES.map(e => e.unit))].sort((a,b) => a-b);
+  const box = $('unitBoxes'); box.innerHTML = '';
+  units.forEach(u => {
+    const n = ENTRIES.filter(e => e.unit === u).length;
+    const l = document.createElement('label'); l.className = 'chk';
+    l.innerHTML = `<input type="checkbox" data-unit="${u}"> Unité ${u} <span class="small muted">(${n})</span>`;
+    const cb = l.querySelector('input'); cb.checked = !settings.units || settings.units.includes(u);
+    cb.addEventListener('change', () => {
+      const on = [...box.querySelectorAll('input')].filter(x => x.checked).map(x => +x.dataset.unit);
+      settings.units = on.length === units.length ? null : on; saveSettings(); renderDash(); renderCahier();
+    });
+    box.appendChild(l);
+  });
 }
 /* Leichte Prüfung; das strenge Prüfskript ist validate_vocab.py */
 function checkVocab(d){
@@ -332,8 +352,9 @@ $('btnReload').addEventListener('click', loadVocab);
 /* ---------- Lernstand ---------- */
 function cardKey(id, dir){ return id + '|' + dir; }
 function getCard(id, dir){ return state.cards[cardKey(id, dir)] || null; }
+function unitActive(e){ return !settings.units || settings.units.includes(e.unit); }
 function dirApplies(e, dir){
-  if (!settings.dirs[dir]) return false;
+  if (!settings.dirs[dir] || !unitActive(e)) return false;
   if (dir === 'ipa_fr') return !!e.ipa && !e.proper_name;
   return true;
 }
@@ -351,7 +372,7 @@ function introduceNew(limit){
   const out = [];
   for (const e of ENTRIES){
     if (budget <= 0) break;
-    if (state.introduced[e.id]) continue;
+    if (state.introduced[e.id] || !unitActive(e)) continue;
     state.introduced[e.id] = t; ensureCards(e); out.push(e); budget--;
   }
   if (out.length) saveState();
@@ -427,7 +448,7 @@ function renderDash(){
   const newToday = Object.values(state.introduced).filter(d => d === t).length;
   const intro = Object.keys(state.introduced).filter(id => BYID.has(id)).length;
   const remainingNew = Math.max(0, settings.newPerDay - newToday);
-  const notYet = ENTRIES.filter(e => !state.introduced[e.id]).length;
+  const notYet = ENTRIES.filter(e => !state.introduced[e.id] && unitActive(e)).length;
   $('stDue').textContent = due;
   $('stNew').textContent = `${newToday}/${settings.newPerDay}`;
   $('stKnown').textContent = intro;
@@ -458,6 +479,12 @@ function startSession(){
   nextCard();
 }
 function stopSession(){ queue = []; cur = null; $('quiz').hidden = true; $('dash').hidden = false; renderDash(); renderCahier(); }
+const MAX_RETRY = 2; // so oft kommt eine falsche Karte in derselben Session wieder
+function requeue(card){
+  const retry = (card.retry || 0) + 1;
+  if (retry > MAX_RETRY) return;
+  queue.push({ ...card, fresh: false, retry });
+}
 function nextCard(){
   if (!queue.length){ return finishSession(); }
   cur = queue.shift(); phase = 'ask'; awaitingNext = false;
@@ -473,7 +500,8 @@ function nextCard(){
   else { $('typeBox').hidden = true; $('revealBox').hidden = false; }
 }
 function renderReveal(e){
-  const ex = e.example_fr ? `<div class="ex">${esc(e.example_fr)}<div class="d">${esc(e.example_de || '')}</div></div>` : '';
+  const exOne = (f, d) => f ? `<div class="ex">${esc(f)}<div class="d">${esc(d || '')}</div></div>` : '';
+  const ex = exOne(e.example_fr, e.example_de) + exOne(e.example2_fr, e.example2_de);
   $('reveal').innerHTML = `<div><span class="fr">${esc(e.fr)}</span>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}</div><div class="de">${esc(e.de)}</div>${ex}`;
   $('reveal').hidden = false;
 }
@@ -489,7 +517,7 @@ function checkAnswer(){
   renderReveal(e);
   $('answer').disabled = true;
   grade(c, r.result); sessionStats[r.result]++; sessionStats.n++;
-  if (r.result === 'bad') queue.push({ ...cur, fresh: false }); // nochmal in dieser Session
+  if (r.result === 'bad') requeue(cur); // nochmal in dieser Session
   $('nextRow').hidden = false; awaitingNext = true; $('btnNext').focus();
 }
 function showAnswer(){ // "Zeigen" = aufgeben, zählt als falsch
@@ -498,7 +526,7 @@ function showAnswer(){ // "Zeigen" = aufgeben, zählt als falsch
   const v = $('verdict'); v.className = 'verdict bad'; v.hidden = false; v.innerHTML = '<b>Angezeigt – zählt als falsch.</b>';
   renderReveal(e); $('answer').disabled = true;
   grade(c, 'bad'); sessionStats.bad++; sessionStats.n++;
-  queue.push({ ...cur, fresh: false });
+  requeue(cur);
   $('nextRow').hidden = false; awaitingNext = true; $('btnNext').focus();
 }
 function flip(){
@@ -509,7 +537,7 @@ function judge(ok){
   if (phase !== 'judge') return;
   phase = 'done';
   grade(cur.c, ok ? 'ok' : 'bad'); sessionStats[ok ? 'ok' : 'bad']++; sessionStats.n++;
-  if (!ok) queue.push({ ...cur, fresh: false });
+  if (!ok) requeue(cur);
   nextCard();
 }
 function finishSession(){
@@ -563,18 +591,19 @@ function renderCahier(){
   const tb = $('cahierBody'); tb.innerHTML = '';
   let n = 0;
   for (const e of ENTRIES){
+    if (!unitActive(e)) continue;
     if (only && !state.introduced[e.id]) continue;
     if (q && !(norm(e.fr,{accents:false}).includes(q) || norm(e.de,{accents:false}).includes(q) || (e.tags||[]).some(t => norm(t,{accents:false}).includes(q)))) continue;
     n++;
     const boxes = Object.keys(DIRS).filter(d => dirApplies(e, d)).map(d => { const c = getCard(e.id, d); return c ? `<span class="box b${c.box}" title="${esc(DIRS[d].label)} · fällig ${esc(c.due)}">${c.box}</span>` : ''; }).join(' ');
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td><b>${esc(e.fr)}</b>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}</td>
+    tr.innerHTML = `<td><b>${esc(e.fr)}</b>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}<span class="small muted" style="display:block">U${e.unit} · ${esc(e.section)}</span></td>
       <td>${esc(e.de)}</td>
-      <td class="small">${esc(e.example_fr || '')}${e.example_de ? `<br><span class="muted">${esc(e.example_de)}</span>` : ''}</td>
+      <td class="small">${esc(e.example_fr || '')}${e.example_de ? `<br><span class="muted">${esc(e.example_de)}</span>` : ''}${e.example2_fr ? `<br>${esc(e.example2_fr)}<br><span class="muted">${esc(e.example2_de || '')}</span>` : ''}</td>
       <td>${state.introduced[e.id] ? boxes : '<span class="small muted">–</span>'}</td>`;
     tb.appendChild(tr);
   }
-  $('cahierCount').textContent = `${n} von ${ENTRIES.length} Einträgen`;
+  $('cahierCount').textContent = `${n} von ${ENTRIES.filter(unitActive).length} Einträgen (aktive Unités)`;
 }
 $('filter').addEventListener('input', renderCahier);
 $('onlyIntro').addEventListener('change', renderCahier);

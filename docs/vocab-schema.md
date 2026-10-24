@@ -57,7 +57,7 @@ Stand: 2026-10-24. Dieses Format ist der Vertrag zwischen Masterliste (GPT-Sitzu
 
 | Feld | Typ | Pflicht | Bedeutung |
 |---|---|---|---|
-| `id` | string | ja | Stabil. Muster `U<unité>-<laufende Nr.>`, dreistellig: `U1-017`. Nie recyceln, nie umnummerieren. |
+| `id` | string | ja | Stabil. Entweder Schema-Muster `U<unité>-<nnn>` (`U1-017`) oder die Masterlisten-ID `A3-U<unité>-<A|VT|V1|V2>-<nnn>` (`A3-U1-V1-002`). Seit 2026-10-24 gilt die Masterlisten-ID als Standard, weil sie bereits stabil vergeben ist. Nie recyceln, nie umnummerieren. |
 | `unit` | int | ja | Unité laut Cornelsen. |
 | `section` | string | ja | Abschnitt laut Buch (`Auftakt`, `Vocabulaire thématique`, `Leçon 1` …). |
 | `order` | int | ja | Schulische Reihenfolge innerhalb der Unité. Bestimmt, in welcher Folge neue Wörter freigeschaltet werden. |
@@ -77,6 +77,16 @@ Stand: 2026-10-24. Dieses Format ist der Vertrag zwischen Masterliste (GPT-Sitzu
 | `editorial` | string/null | nein | Freitext für redaktionelle Einschätzungen und Hinweise (`CEFR geschätzt A2, nicht belegt`). Wird in der App nicht angezeigt. |
 | `proper_name` | bool | ja | `true` bei Eigennamen; die App überspringt dann die IPA-Richtung und zeigt kein CEFR. |
 
+### Optionale Erweiterungen (seit 2026-10-24)
+
+| Feld | Typ | Bedeutung |
+|---|---|---|
+| `day` | int/null | Lerntag innerhalb der Unité laut Masterliste (8 Wörter je Tag). Rein informativ; die App schaltet nach `order` frei. |
+| `example2_fr`, `example2_de` | string/null | Zweiter Beispielsatz mit Übersetzung. |
+| `ipa_sources` | string[]/null | URLs der Wörterbuchbelege für `ipa` (z. B. Wiktionnaire). |
+
+Diese Felder dürfen fehlen; der Validator warnt dann nicht.
+
 ## Was die App mit den Feldern macht
 
 Deutsch → Französisch: zeigt `de`, erwartet getippte Eingabe, vergleicht gegen `fr_accept`.
@@ -85,6 +95,10 @@ IPA → Schreibweise: zeigt `ipa`, erwartet getippte Eingabe, vergleicht gegen `
 Nach dem Aufdecken erscheinen immer `fr`, `de`, `ipa`, `example_fr`, `example_de`.
 
 Toleranz beim Tippen (macht die App, nicht die Liste): fehlende oder falsche Akzente, Groß-/Kleinschreibung und Leerzeichen um Apostrophe werden als „fast richtig“ gewertet und angezeigt, zählen aber nicht als voller Treffer. Fehlender oder falscher Artikel bei `noun` ist ein Fehler.
+
+## Herkunft der Datei
+
+`vocab.json` entsteht nicht von Hand, sondern mit `convert_gpt_export.py` aus dem Export der GPT-/Codex-Sitzung (`A_plus_3_Lernapp_Daten.json`). Der Export kennt weder Wortart noch Genus; beides liefert `pos_overrides.json` (redaktionell, zu prüfen) bzw. die Ableitung aus Artikel und Hinweistext. Abschnitte, die im Export fehlen, kommen aus `sections_from_master.json` (Masterliste). IPA-Varianten (`/a/ · /b/`) werden ohne Schrägstriche als `a · b` übernommen.
 
 ## Validierung
 

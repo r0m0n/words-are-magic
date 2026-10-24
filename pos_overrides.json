@@ -1,0 +1,498 @@
+{
+  "_hinweis": "Redaktionelle Zuordnung von Wortart (pos), Genus und Eigennamen-Status für Einträge, bei denen Export und Masterliste keine Angabe machen. Erstellt von Claude am 2026-10-24 nach Standardwörterbuchwissen; von Roman Bartnik zu prüfen. Schlüssel = id. Felder: pos, gender (nur noun), proper_name.",
+  "A3-U1-V2-011": {
+    "pos": "conj"
+  },
+  "A3-U1-V2-020": {
+    "pos": "adj"
+  },
+  "A3-U1-V1-009": {
+    "pos": "prep"
+  },
+  "A3-U1-V1-014": {
+    "pos": "conj"
+  },
+  "A3-U1-V1-016": {
+    "pos": "prep"
+  },
+  "A3-U1-VT-014": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U1-V2-023": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U1-VT-009": {
+    "pos": "expr"
+  },
+  "A3-U1-V2-016": {
+    "pos": "prep"
+  },
+  "A3-U1-A-007": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U1-A-010": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U1-A-013": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U1-V1-024": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U1-V2-025": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U1-VT-004": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U2-A-001": {
+    "pos": "adj"
+  },
+  "A3-U2-A-008": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U2-A-010": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U2-VT-002": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U2-VT-008": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U2-VT-011": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U2-VT-012": {
+    "pos": "prep"
+  },
+  "A3-U2-VT-013": {
+    "pos": "prep"
+  },
+  "A3-U2-VT-015": {
+    "pos": "adv"
+  },
+  "A3-U2-VT-019": {
+    "pos": "adv"
+  },
+  "A3-U2-V1-002": {
+    "pos": "adj"
+  },
+  "A3-U2-V1-003": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U2-V1-004": {
+    "pos": "adv"
+  },
+  "A3-U2-V1-006": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U2-V1-007": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U2-V1-009": {
+    "pos": "adj"
+  },
+  "A3-U2-V1-011": {
+    "pos": "adj"
+  },
+  "A3-U2-V1-015": {
+    "pos": "adj"
+  },
+  "A3-U2-V1-018": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U2-V1-019": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U2-V1-020": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U2-V1-021": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U2-V1-025": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U2-V1-027": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U2-V2-006": {
+    "pos": "adv"
+  },
+  "A3-U2-V2-007": {
+    "pos": "verb"
+  },
+  "A3-U2-V2-010": {
+    "pos": "adv"
+  },
+  "A3-U2-V2-011": {
+    "pos": "conj"
+  },
+  "A3-U2-V2-012": {
+    "pos": "pron"
+  },
+  "A3-U2-V2-014": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U2-V2-015": {
+    "pos": "pron"
+  },
+  "A3-U2-V2-016": {
+    "pos": "expr"
+  },
+  "A3-U2-V2-017": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U2-V2-018": {
+    "pos": "adv"
+  },
+  "A3-U2-V2-020": {
+    "pos": "expr"
+  },
+  "A3-U2-V2-021": {
+    "pos": "adv"
+  },
+  "A3-U2-V2-022": {
+    "pos": "expr"
+  },
+  "A3-U2-V2-024": {
+    "pos": "adj"
+  },
+  "A3-U3-A-001": {
+    "pos": "expr"
+  },
+  "A3-U3-A-002": {
+    "pos": "adj"
+  },
+  "A3-U3-A-003": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U3-A-006": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U3-VT-001": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U3-VT-004": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U3-VT-008": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U3-VT-013": {
+    "pos": "expr"
+  },
+  "A3-U3-VT-015": {
+    "pos": "expr"
+  },
+  "A3-U3-VT-017": {
+    "pos": "expr"
+  },
+  "A3-U3-V1-002": {
+    "pos": "adv"
+  },
+  "A3-U3-V1-006": {
+    "pos": "expr"
+  },
+  "A3-U3-V1-007": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U3-V1-011": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U3-V1-012": {
+    "pos": "adv"
+  },
+  "A3-U3-V1-014": {
+    "pos": "adj"
+  },
+  "A3-U3-V1-017": {
+    "pos": "adv"
+  },
+  "A3-U3-V1-020": {
+    "pos": "adj"
+  },
+  "A3-U3-V1-021": {
+    "pos": "conj"
+  },
+  "A3-U3-V1-023": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U3-V1-025": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U3-V2-003": {
+    "pos": "expr"
+  },
+  "A3-U3-V2-004": {
+    "pos": "adv"
+  },
+  "A3-U3-V2-005": {
+    "pos": "adv"
+  },
+  "A3-U3-V2-006": {
+    "pos": "adv"
+  },
+  "A3-U3-V2-007": {
+    "pos": "adv"
+  },
+  "A3-U3-V2-008": {
+    "pos": "conj"
+  },
+  "A3-U3-V2-010": {
+    "pos": "adv"
+  },
+  "A3-U3-V2-018": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U3-V2-019": {
+    "pos": "adv"
+  },
+  "A3-U3-V2-020": {
+    "pos": "adv"
+  },
+  "A3-U3-V2-022": {
+    "pos": "adj"
+  },
+  "A3-U3-V2-023": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U3-V2-024": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U3-V2-025": {
+    "pos": "expr"
+  },
+  "A3-U4-A-003": {
+    "pos": "adj"
+  },
+  "A3-U4-A-006": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U4-A-007": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U4-A-008": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U4-A-009": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U4-VT-002": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U4-VT-005": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U4-VT-007": {
+    "pos": "expr"
+  },
+  "A3-U4-VT-012": {
+    "pos": "adj"
+  },
+  "A3-U4-VT-020": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U4-V1-001": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U4-V1-002": {
+    "pos": "prep"
+  },
+  "A3-U4-V1-010": {
+    "pos": "adv"
+  },
+  "A3-U4-V1-014": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U4-V1-015": {
+    "pos": "adv"
+  },
+  "A3-U4-V1-018": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U4-V1-019": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U4-V1-020": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U4-V1-021": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U4-V2-002": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U4-V2-004": {
+    "pos": "adj"
+  },
+  "A3-U4-V2-005": {
+    "pos": "adv"
+  },
+  "A3-U4-V2-007": {
+    "pos": "expr"
+  },
+  "A3-U4-V2-010": {
+    "pos": "adv"
+  },
+  "A3-U4-V2-011": {
+    "pos": "adv"
+  },
+  "A3-U4-V2-017": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U4-V2-022": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U4-V2-024": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U5-A-003": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U5-A-004": {
+    "pos": "verb"
+  },
+  "A3-U5-VT-001": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U5-VT-003": {
+    "pos": "adj"
+  },
+  "A3-U5-VT-004": {
+    "pos": "adv"
+  },
+  "A3-U5-VT-005": {
+    "pos": "adv"
+  },
+  "A3-U5-VT-006": {
+    "pos": "adj"
+  },
+  "A3-U5-VT-007": {
+    "pos": "conj"
+  },
+  "A3-U5-VT-008": {
+    "pos": "expr"
+  },
+  "A3-U5-VT-010": {
+    "pos": "adv"
+  },
+  "A3-U5-VT-011": {
+    "pos": "adj"
+  },
+  "A3-U5-VT-012": {
+    "pos": "adv"
+  },
+  "A3-U5-VT-014": {
+    "pos": "expr"
+  },
+  "A3-U5-V1-001": {
+    "pos": "adj"
+  },
+  "A3-U5-V1-007": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U5-V1-016": {
+    "pos": "adj"
+  },
+  "A3-U5-V1-021": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U5-V1-022": {
+    "pos": "name",
+    "proper_name": true
+  },
+  "A3-U5-V1-024": {
+    "pos": "noun",
+    "gender": "f"
+  },
+  "A3-U5-V2-002": {
+    "pos": "adj"
+  },
+  "A3-U5-V2-003": {
+    "pos": "adj"
+  },
+  "A3-U5-V2-004": {
+    "pos": "adv"
+  },
+  "A3-U5-V2-006": {
+    "pos": "expr"
+  },
+  "A3-U5-V2-007": {
+    "pos": "expr"
+  },
+  "A3-U5-V2-010": {
+    "pos": "adj"
+  },
+  "A3-U5-V2-018": {
+    "pos": "adv"
+  },
+  "A3-U5-V2-020": {
+    "pos": "adj"
+  },
+  "A3-U5-V2-022": {
+    "pos": "noun",
+    "gender": "m"
+  },
+  "A3-U2-V1-016": {
+    "pos": "adv"
+  }
+}

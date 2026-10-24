@@ -16,7 +16,7 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-ID_RE = re.compile(r"^U(\d+)-(\d{3})$")
+ID_RE = re.compile(r"^(?:U(\d+)-(\d{3})|A3-U(\d+)-(?:A|VT|V\d)-(\d{3}))$")  # Schema-Muster oder Masterlisten-ID
 POS = {"noun", "verb", "adj", "adv", "expr", "prep", "conj", "pron", "num", "name", "other"}
 GENDER = {"m", "f"}
 CEFR = {"A1", "A2", "B1", "B2", "C1", "C2"}
@@ -27,7 +27,10 @@ REQUIRED = {
 OPTIONAL = {
     "gender": str, "ipa": str, "example_fr": str, "example_de": str,
     "cefr": str, "cefr_source": str, "freq": (int, float), "freq_source": str, "editorial": str,
+    # Erweiterungen seit 2026-10-24 (optional, dürfen fehlen)
+    "day": int, "example2_fr": str, "example2_de": str, "ipa_sources": list,
 }
+EXTENSIONS = {"day", "example2_fr", "example2_de", "ipa_sources"}
 KNOWN = set(REQUIRED) | set(OPTIONAL)
 IPA_SUSPECT = re.compile(r"[/\[\]]")  # Schrägstriche/Klammern gehören nicht ins Feld
 
@@ -95,8 +98,10 @@ def main(argv: list[str]) -> int:
             if f not in KNOWN:
                 warnings.append(f"{where}: unbekanntes Feld {f}")
         for f in OPTIONAL:
-            if f not in e:
+            if f not in e and f not in EXTENSIONS:
                 warnings.append(f"{where}: optionales Feld {f} fehlt (bitte explizit null setzen)")
+        if (e.get("example2_fr") is None) != (e.get("example2_de") is None):
+            warnings.append(f"{where}: example2_fr/example2_de nur einseitig gesetzt")
 
         # Leere Strings sind verboten (auch in Listen)
         for f, v in e.items():
@@ -113,8 +118,10 @@ def main(argv: list[str]) -> int:
             m = ID_RE.match(eid)
             if not m:
                 errors.append(f"{where}: id passt nicht auf U<n>-<nnn>")
-            elif isinstance(e.get("unit"), int) and int(m.group(1)) != e["unit"]:
-                errors.append(f"{where}: id-Unité {m.group(1)} ≠ unit {e['unit']}")
+            else:
+                id_unit = int(m.group(1) or m.group(3))
+                if isinstance(e.get("unit"), int) and id_unit != e["unit"]:
+                    errors.append(f"{where}: id-Unité {id_unit} ≠ unit {e['unit']}")
 
         if isinstance(e.get("unit"), int) and isinstance(e.get("order"), int):
             orders[e["unit"]][e["order"]] += 1
@@ -137,7 +144,7 @@ def main(argv: list[str]) -> int:
         if pos == "noun":
             if g not in GENDER:
                 errors.append(f"{where}: noun braucht gender m/f, ist {g!r}")
-            if isinstance(e.get("fr"), str) and not re.match(r"^((le|la|les|un|une|des)\s|l')", e["fr"], re.I):
+            if isinstance(e.get("fr"), str) and not re.match(r"^((le|la|les|un|une|des)\s|l['\u2019])", e["fr"], re.I):
                 warnings.append(f"{where}: noun ohne Artikel in fr: {e['fr']!r}")
         elif g is not None:
             errors.append(f"{where}: gender nur bei noun, hier pos={pos!r}")
