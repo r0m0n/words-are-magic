@@ -1,0 +1,9 @@
+# Netlify: Seite aus dem Repo-Wurzelverzeichnis, Funktion für den Lernstand-Abgleich
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/state"
+  to = "/.netlify/functions/state"
+  status = 200

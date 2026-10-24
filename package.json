@@ -1,0 +1,9 @@
+{
+  "name": "words-are-magic",
+  "private": true,
+  "description": "Vokabeltrainer À plus! 3 – Netlify-Funktion für den Lernstand-Abgleich",
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

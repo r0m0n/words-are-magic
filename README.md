@@ -37,6 +37,8 @@ Jede richtige Antwort hebt die Karte eine Leitner-Stufe (0 → sofort, 1 → 1 T
 | `sections_from_master.json` | Abschnitt je ID aus der Masterliste (für Unité 1 nötig) |
 | `validate_vocab.py` | prüft eine `vocab.json` gegen den Vertrag |
 | `tests_smoke.py` | Browser-Test, spielt Auswahl, Lerntage, alle Übungen und Reload durch |
+| `tests_sync.py`, `tests_mock_server.py` | Abgleich-Test mit zwei „Geräten“ gegen einen lokalen Nachbau der Netlify-Funktion |
+| `netlify.toml`, `netlify/functions/state.mjs`, `package.json` | Netlify: Veröffentlichung und Abgleich-Funktion |
 
 ## Benutzen
 
@@ -59,9 +61,21 @@ Der Konverter schreibt den `changelog` fort und meldet verschwundene oder neue I
 
 IDs bleiben stabil; der Lernstand hängt an `id` + Richtung. Alles andere darf sich ändern, ohne dass Lernstand verloren geht.
 
-## Lernstand sichern oder umziehen
+## Lernstand: wo er liegt und wie er zwischen Geräten wandert
 
-*Einstellungen → Lernstand → Exportieren* schreibt eine JSON-Datei; *Importieren* liest sie auf einem anderen Gerät ein. Der Lernstand ist an den Browser gebunden – ein anderes Gerät oder ein privates Fenster startet bei null.
+Der Lernstand (Leitner-Stufen je Karte, Fehlerliste, Rundenfortschritt) liegt im Browser des Geräts (localStorage). Zwei Wege, ihn auf ein anderes Gerät zu bringen:
+
+**Abgleich über Netlify (empfohlen).** Läuft die App auf Netlify, erscheint unter *Einstellungen → Abgleich zwischen Geräten* ein **Lernschlüssel**. Einmal „Neu erzeugen“, „Verbinden“, den Schlüssel auf dem zweiten Gerät eintragen – fertig. Die App holt beim Start den Stand, mischt ihn mit dem lokalen (je Karte gewinnt die mit mehr Antworten) und schreibt nach jeder Antwort zurück. Der Schlüssel ist das einzige Geheimnis; es gibt kein Konto und keinen Namen. Technisch: `netlify/functions/state.mjs` legt ein JSON-Dokument je Schlüssel in Netlify Blobs ab (`netlify.toml`, `package.json`).
+
+**Export/Import.** *Einstellungen → Lernstand → Exportieren* schreibt eine JSON-Datei; *Importieren* liest sie auf einem anderen Gerät ein. Funktioniert überall, auch auf GitHub Pages, wo es keinen Abgleich gibt.
+
+### Auf Netlify veröffentlichen
+
+1. Bei Netlify: „Add new project → Import an existing project → GitHub“, Repository `words-are-magic` wählen.
+2. Build-Einstellungen: Build command leer lassen, Publish directory `.` (steht in `netlify.toml`). „Deploy“.
+3. Danach läuft die App unter `https://<name>.netlify.app/`, die Funktion unter `/api/state`. Jeder Push auf `main` veröffentlicht neu.
+
+GitHub Pages kann parallel weiterlaufen; dort fehlt nur der Abgleich.
 
 ## Entwicklung
 
@@ -69,6 +83,7 @@ IDs bleiben stabil; der Lernstand hängt an `id` + Richtung. Alles andere darf s
 python validate_vocab.py vocab.sample.json
 pip install playwright && python -m playwright install chromium
 python tests_smoke.py
+python tests_sync.py
 ```
 
 Keine Build-Schritte, keine Abhängigkeiten im Browser.

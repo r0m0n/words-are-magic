@@ -37,7 +37,7 @@ try:
         b = p.chromium.launch()
         pg = b.new_page(viewport={"width": 390, "height": 820})
         pg.on("pageerror", lambda e: errors.append(str(e)))
-        pg.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
+        pg.on("console", lambda m: errors.append(m.text) if m.type == "error" and "404" not in m.text else None)  # 404 von /api/state ist ohne Netlify erwartet
         pg.goto("http://127.0.0.1:8765/index.html")
         pg.wait_for_function("document.querySelectorAll('#selUnit option').length > 0")
         print("eyebrow:", pg.inner_text("#eyebrow"))

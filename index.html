@@ -126,6 +126,7 @@
         <label class="field">Lerntag<select id="selDay"></select></label>
       </div>
       <div class="small muted" style="margin-top:8px" id="scopeInfo"></div>
+      <div class="small muted" id="syncLine" hidden></div>
       <div class="modes" id="modes">
         <button data-mode="de_fr" aria-pressed="false">Deutsch → Französisch <span class="n"></span></button>
         <button data-mode="fr_de" aria-pressed="false">Französisch → Deutsch <span class="n"></span></button>
@@ -267,9 +268,23 @@
         <button class="ghost" id="btnReload">Neu laden</button>
       </div>
     </div>
+    <div class="card" id="syncCard">
+      <h2>Abgleich zwischen Geräten</h2>
+      <div id="syncUnavailable" class="small muted" hidden>Auf dieser Adresse gibt es keinen Abgleich; der Lernstand bleibt in diesem Browser. Export/Import unten funktioniert trotzdem.</div>
+      <div id="syncAvailable" hidden>
+        <p class="small muted" style="margin:0 0 8px">Ein <b>Lernschlüssel</b> verbindet Geräte: denselben Schlüssel auf Handy und Laptop eintragen, dann teilen beide den Stand. Der Schlüssel ist das einzige Geheimnis – wer ihn kennt, sieht den Lernstand. Kein Konto, kein Name.</p>
+        <div class="row">
+          <input type="text" id="syncKey" placeholder="Lernschlüssel" autocomplete="off" autocapitalize="off" spellcheck="false" style="font-size:1rem;flex:1;min-width:200px">
+          <button class="ghost" id="btnSyncGen">Neu erzeugen</button>
+          <button class="primary" id="btnSyncConnect">Verbinden</button>
+          <button class="ghost danger" id="btnSyncOff" hidden>Trennen</button>
+        </div>
+        <div class="small muted" style="margin-top:8px" id="syncStatus"></div>
+      </div>
+    </div>
     <div class="card">
       <h2>Lernstand</h2>
-      <p class="small muted" style="margin:0 0 8px">Der Lernstand liegt nur in diesem Browser. Zum Umziehen auf ein anderes Gerät exportieren und dort importieren.</p>
+      <p class="small muted" style="margin:0 0 8px">Ohne Abgleich liegt der Lernstand nur in diesem Browser. Zum Umziehen auf ein anderes Gerät exportieren und dort importieren.</p>
       <div class="row">
         <button class="ghost" id="btnExport">Exportieren</button>
         <label class="ghost" style="cursor:pointer">Importieren <input type="file" id="fileState" accept=".json,application/json" hidden></label>
@@ -607,6 +622,7 @@ function record(result){
   if (DIRS[dir].word && c) grade(c, result);
   if (mode !== 'errors' && mode !== 'review'){ const r = roundFor(mode); if (result === 'ok') r.ok[key] = todayStr(); else delete r.ok[key]; saveRounds(); }
   if (result === 'bad'){ wrongKeys.add(key); requeue(cur); } else if (result === 'near'){ wrongKeys.add(key); }
+  schedulePush();
 }
 function checkAnswer(){
   if (phase !== 'ask') return;
@@ -639,7 +655,7 @@ function finishRound(){
   $('btnRetryWrong').hidden = !wrongKeys.size; renderModes(); renderRing(); renderSetList(); $('setList').hidden = !currentSet().length;
 }
 $('btnRetryWrong').addEventListener('click', () => startRound(mode, new Set(wrongKeys)));
-$('btnNewRound').addEventListener('click', () => { if (mode && mode !== 'errors' && mode !== 'review'){ delete rounds[roundKey(mode)]; saveRounds(); } startRound(mode || 'de_fr'); });
+$('btnNewRound').addEventListener('click', () => { if (mode && mode !== 'errors' && mode !== 'review'){ delete rounds[roundKey(mode)]; saveRounds(); schedulePush(); } startRound(mode || 'de_fr'); });
 $('btnStop').addEventListener('click', stopRound);
 $('modes').addEventListener('click', ev => { const b = ev.target.closest('[data-mode]'); if (!b || b.disabled) return; startRound(b.dataset.mode); });
 $('btnCheck').addEventListener('click', checkAnswer); $('btnShow').addEventListener('click', showAnswer);
@@ -696,11 +712,79 @@ $('fileState').addEventListener('change', async ev => {
   try {
     const d = JSON.parse(await f.text()); if (!d.state || !d.state.cards) throw new Error('kein Lernstand in der Datei');
     if (!confirm('Lernstand aus Datei übernehmen? Der aktuelle Stand in diesem Browser wird ersetzt.')) return;
-    state = d.state; rounds = d.rounds || {}; if (d.settings) settings = Object.assign(settings, d.settings); saveState(); saveRounds(); saveSettings(); location.reload();
+    state = d.state; rounds = d.rounds || {}; if (d.settings) settings = Object.assign(settings, d.settings); saveState(); saveRounds(); saveSettings(); await syncPush(true); location.reload();
   } catch(e){ alert('Import fehlgeschlagen: ' + e.message); }
   ev.target.value = '';
 });
-$('btnReset').addEventListener('click', () => { if (!confirm('Wirklich den gesamten Lernstand löschen?')) return; state = { cards: {}, log: [] }; rounds = {}; saveState(); saveRounds(); stopRound(); renderCahier(); });
+$('btnReset').addEventListener('click', () => { if (!confirm('Wirklich den gesamten Lernstand löschen?')) return; state = { cards: {}, log: [] }; rounds = {}; saveState(); saveRounds(); stopRound(); renderCahier(); schedulePush(); });
+
+/* ---------- Abgleich (Netlify-Funktion /api/state) ---------- */
+const SYNC_URL = '/api/state';
+const LS_SYNC = 'wam:sync:v1';
+let sync = Object.assign({ key: '', available: null, lastPush: null, lastPull: null }, loadJSON(LS_SYNC) || {});
+const saveSync = () => saveJSON(LS_SYNC, { key: sync.key, lastPush: sync.lastPush, lastPull: sync.lastPull });
+function genKey(){ const a = new Uint8Array(24); crypto.getRandomValues(a); return [...a].map(b => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join('').replace(/(.{6})(?=.)/g, '$1-'); }
+function syncStatus(msg, kind){ $('syncStatus').textContent = msg; $('syncLine').hidden = !sync.key; $('syncLine').textContent = sync.key ? 'Abgleich: ' + msg : ''; $('syncLine').style.color = kind === 'err' ? 'var(--bad)' : ''; }
+async function syncProbe(){
+  if (location.protocol === 'file:') { sync.available = false; }
+  else { try { const r = await fetch(SYNC_URL + '?ping=1', { cache: 'no-store' }); sync.available = r.ok && (await r.json()).ok === true; } catch(e){ sync.available = false; } }
+  $('syncUnavailable').hidden = sync.available; $('syncAvailable').hidden = !sync.available;
+  $('syncKey').value = sync.key || ''; $('btnSyncOff').hidden = !sync.key;
+  if (sync.available && sync.key) await syncPull();
+}
+/* Zusammenführen: je Karte gewinnt die mit mehr Antworten (bei Gleichstand die spätere); Runden: Vereinigung */
+function mergeInto(remote){
+  if (!remote || !remote.state) return;
+  const rc = remote.state.cards || {};
+  for (const [k, c] of Object.entries(rc)){
+    const l = state.cards[k];
+    if (!l || c.seen > l.seen || (c.seen === l.seen && (c.lastAt || '') > (l.lastAt || ''))) state.cards[k] = c;
+  }
+  for (const [k, r] of Object.entries(remote.rounds || {})){
+    if (!rounds[k]) rounds[k] = r; else Object.assign(rounds[k].ok, r.ok || {});
+  }
+  saveState(); saveRounds();
+}
+async function syncPull(){
+  try {
+    const r = await fetch(SYNC_URL + '?key=' + encodeURIComponent(sync.key), { cache: 'no-store' });
+    if (r.status === 404){ syncStatus('Schlüssel ist neu – dieser Browser schickt seinen Stand hoch.'); await syncPush(true); return; }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const doc = await r.json(); mergeInto(doc.data); sync.lastPull = doc.updated; saveSync();
+    syncStatus('verbunden · Stand vom ' + new Date(doc.updated).toLocaleString('de-DE'));
+    if (VOCAB){ renderModes(); renderRing(); renderSetList(); renderCahier(); }
+    await syncPush(true);
+  } catch(e){ syncStatus('Abholen fehlgeschlagen: ' + e.message, 'err'); }
+}
+let pushTimer = null;
+function schedulePush(){ if (!sync.available || !sync.key) return; clearTimeout(pushTimer); pushTimer = setTimeout(() => { pushTimer = null; syncPush(false); }, 1500); }
+let pushing = false, pushAgain = false;
+async function syncPush(skipMerge){
+  if (!sync.available || !sync.key) return;
+  if (pushing){ pushAgain = true; return; }
+  pushing = true;
+  try {
+    /* Vor dem Schreiben den Serverstand einmischen, falls ein anderes Gerät inzwischen geschrieben hat */
+    if (!skipMerge){
+      const g = await fetch(SYNC_URL + '?key=' + encodeURIComponent(sync.key), { cache: 'no-store' });
+      if (g.ok){ const doc = await g.json(); if (doc.updated !== sync.lastPull){ mergeInto(doc.data); if (VOCAB){ renderModes(); renderRing(); renderSetList(); } } }
+    }
+    const body = JSON.stringify({ vocabVersion: VOCAB?.version, state, rounds });
+    const r = await fetch(SYNC_URL + '?key=' + encodeURIComponent(sync.key), { method: 'PUT', headers: { 'content-type': 'application/json' }, body });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    sync.lastPush = sync.lastPull = (await r.json()).updated; saveSync();
+    syncStatus('verbunden · gespeichert ' + new Date(sync.lastPush).toLocaleTimeString('de-DE'));
+  } catch(e){ syncStatus('Speichern fehlgeschlagen: ' + e.message + ' – der Stand bleibt lokal.', 'err'); }
+  finally { pushing = false; if (pushAgain){ pushAgain = false; syncPush(false); } }
+}
+$('btnSyncGen').addEventListener('click', () => { $('syncKey').value = genKey(); });
+$('btnSyncConnect').addEventListener('click', async () => {
+  const k = $('syncKey').value.trim();
+  if (!/^[A-Za-z0-9-]{20,64}$/.test(k)){ syncStatus('Schlüssel muss 20–64 Zeichen haben (Buchstaben, Ziffern, Bindestrich).', 'err'); return; }
+  sync.key = k; saveSync(); $('btnSyncOff').hidden = false; syncStatus('verbinde …'); await syncPull();
+});
+$('btnSyncOff').addEventListener('click', () => { sync.key = ''; saveSync(); $('syncKey').value = ''; $('btnSyncOff').hidden = true; syncStatus('getrennt – der Stand bleibt lokal.'); });
+window.addEventListener('pagehide', () => { if (pushTimer !== null){ clearTimeout(pushTimer); pushTimer = null; if (sync.available && sync.key && navigator.sendBeacon){ try { navigator.sendBeacon(SYNC_URL + '?key=' + encodeURIComponent(sync.key), new Blob([JSON.stringify({ vocabVersion: VOCAB?.version, state, rounds })], { type: 'application/json' })); } catch(e){} } } });
 
 /* ---------- Tabs ---------- */
 $('tabs').addEventListener('click', ev => {
@@ -710,7 +794,7 @@ $('tabs').addEventListener('click', ev => {
   if (b.dataset.tab === 'cahier') renderCahier();
 });
 
-loadVocab();
+loadVocab().then(syncProbe);
 </script>
 </body>
 </html>
