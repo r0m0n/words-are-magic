@@ -321,6 +321,7 @@ const CFG = LANG === 'en' ? {
   ipaHint: 'Bei Verben reicht das Wort ohne „to“.', ipaNote: 'Lautschrift aus dem Access-Vokabelverzeichnis (britisches Englisch).',
   dayInfo: 'Ein Abschnitt wird in gleich große Lerntage geteilt, möglichst 8–10 Wörter. Bei „alle Abschnitte“ gilt die Einteilung der Wortliste (8 Wörter je Lerntag).',
   langLink: ['./', 'Französisch (À plus!)'],
+  description: 'Vokabeltrainer Englisch–Deutsch für Access 1 (Klasse 5). Unit, Abschnitt und Lerntag wählen, drei Abfragerichtungen, Satzmodus, Fehlerliste, Wörter anhören. Speichert den Lernstand im Browser.',
 } : {
   name: 'Französisch', adj: 'französische', into: 'ins Französische', bcp47: 'fr-FR', vocabUrl: 'vocab.json',
   title: 'Words are magic', unitLabel: u => `Unité ${u}`, unitShort: u => `U${u}`, unitWord: 'Unité',
@@ -397,6 +398,8 @@ document.querySelectorAll('[data-theme]').forEach(b => b.addEventListener('click
 applyTheme();
 /* ---------- Beschriftungen je Sprache ---------- */
 document.title = CFG.title;
+if (CFG.description) document.querySelector('meta[name="description"]').setAttribute('content', CFG.description);
+$('eyebrow').textContent = CFG.name;
 document.querySelectorAll('#modes button[data-mode] .t').forEach(t => { const m = t.parentElement.dataset.mode; if (DIRS[m]) t.textContent = m.startsWith('sent_') ? DIRS[m].label.replace('Satz:', 'Sätze:') : DIRS[m].label; });
 document.querySelectorAll('.th-lang').forEach(th => th.textContent = CFG.name);
 $('filter').placeholder = CFG.search; $('ipaNote').textContent = CFG.ipaNote;

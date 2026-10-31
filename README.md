@@ -1,6 +1,6 @@
 # Words are magic
 
-Vokabeltrainer Französisch–Deutsch für *Cornelsen À plus! 3* (Neubearbeitung 2020, NRW, Klasse 9). Eine einzelne HTML-Seite, keine Installation, kein Server, keine Anmeldung. Die Wörter kommen aus einer Datei `vocab.json`; der Lernstand bleibt im Browser des Geräts, auf dem gelernt wird.
+Vokabeltrainer Französisch–Deutsch für *Cornelsen À plus! 3* (Neubearbeitung 2020, NRW, Klasse 9) und Englisch–Deutsch für *Access 1* (Klasse 5, unter `/en/`). Eine einzelne HTML-Seite, keine Installation, kein Server, keine Anmeldung. Die Wörter kommen aus einer Datei `vocab.json`; der Lernstand bleibt im Browser des Geräts, auf dem gelernt wird.
 
 ## Was die App macht
 
