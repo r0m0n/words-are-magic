@@ -61,6 +61,29 @@ Der Konverter schreibt den `changelog` fort und meldet verschwundene oder neue I
 
 IDs bleiben stabil; der Lernstand hängt an `id` + Richtung. Alles andere darf sich ändern, ohne dass Lernstand verloren geht.
 
+## Englisch: Access 1 (Klasse 5)
+
+Dieselbe App läuft für Englisch unter `…/en/` bzw. `…/?lang=en` (z. B. `https://r0m0n.github.io/words-are-magic/en/`). Sie liest `en/vocab.json` (Welcome, Units 1–4, 1 006 Einträge aus dem Vokabelverzeichnis von *English G Access 1*). Unterschiede zum Französischen:
+
+- Auswahl Welcome / Unit 1–4 → Abschnitt (Einstieg, Part A–C, Story) → Lerntag (8 Wörter).
+- Kein Artikelzwang. „to“ bei Verben ist freiwillig; `sth.`/`sb.` dürfen weggelassen oder als something/somebody ausgeschrieben werden.
+- Großbuchstaben der Lösung (Monday, I, English) müssen stimmen, sonst „fast richtig“; ein großgeschriebener Anfang bei kleingeschriebener Lösung zählt nicht als Fehler.
+- Lautschrift → Englisch nur für Einträge, deren Lautschrift im Buch den ganzen Ausdruck abdeckt (`ipa_full`).
+- Nach dem Aufdecken erscheinen die Buchhinweise (`note`, z. B. Plural, Gegenteil) und ein Vorlese-Knopf (Sprachausgabe des Browsers, britisches Englisch).
+- Eigene Lerntipps in Kindersprache; Regel 6 behandelt englische Schreibung.
+- Eigener Lernstand im Browser (Schlüssel `wam-en:`) und eigener Lernschlüssel für den Abgleich – Französisch und Englisch beeinflussen sich nicht.
+
+Werkzeuge im Ordner `en/`:
+
+| Datei | Zweck |
+|---|---|
+| `en/vocab.json` | Wortliste Englisch (Schema: `docs/vocab-schema-en.md`) |
+| `en/convert_access_xlsx.py` | übernimmt Welcome und Unit 1 aus der Excel-Liste; IDs bleiben bei erneutem Lauf stabil |
+| `en/check_ipa.py` | gleicht die Buch-Lautschrift gegen ipa-dict en_UK und Britfone ab |
+| `en/beispielsaetze_probe_u2_tag1-2.tsv` | Probe der eigenen Beispielsätze (Unit 2, Lerntage 1–2) |
+| `tests_smoke_en.py` | Browser-Test der Englisch-Variante inkl. Vergleichsregeln und getrenntem Lernstand |
+
+
 ## Lernstand: wo er liegt und wie er zwischen Geräten wandert
 
 Der Lernstand (Leitner-Stufen je Karte, Fehlerliste, Rundenfortschritt) liegt im Browser des Geräts (localStorage). Zwei Wege, ihn auf ein anderes Gerät zu bringen:
@@ -82,7 +105,9 @@ GitHub Pages kann parallel weiterlaufen; dort fehlt nur der Abgleich.
 ```
 python validate_vocab.py vocab.sample.json
 pip install playwright && python -m playwright install chromium
+python validate_vocab.py en/vocab.json
 python tests_smoke.py
+python tests_smoke_en.py
 python tests_sync.py
 ```
 
@@ -90,4 +115,4 @@ Keine Build-Schritte, keine Abhängigkeiten im Browser.
 
 ## Transparenzhinweis
 
-Bei der Erstellung dieser App wurde Claude Fable 5.1 für Entwurf, Implementierung und automatisierte Tests genutzt. Wortliste, Beispielsätze und didaktische Regeln werden von Roman Bartnik geprüft, überarbeitet und verantwortet.
+Bei der Erstellung dieser App wurden Claude Fable 5.1 und Claude Opus 5.5 für Entwurf, Implementierung und automatisierte Tests genutzt. Wortliste, Beispielsätze und didaktische Regeln werden von Roman Bartnik geprüft, überarbeitet und verantwortet.

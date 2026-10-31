@@ -2,7 +2,7 @@ name: vocab prüfen
 
 on:
   push:
-    paths: ["vocab.json", "vocab.sample.json", "validate_vocab.py", "index.html"]
+    paths: ["vocab.json", "en/vocab.json", "vocab.sample.json", "validate_vocab.py", "index.html"]
   pull_request:
 
 jobs:
@@ -18,6 +18,8 @@ jobs:
       - name: vocab.json prüfen (falls vorhanden)
         run: |
           if [ -f vocab.json ]; then python validate_vocab.py vocab.json; else echo "vocab.json noch nicht im Repo"; fi
+      - name: en/vocab.json prüfen (Englisch)
+        run: python validate_vocab.py en/vocab.json
       - name: JavaScript-Syntax der App prüfen
         run: |
           node -e "

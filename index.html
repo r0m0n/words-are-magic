@@ -128,11 +128,11 @@
       <div class="small muted" style="margin-top:8px" id="scopeInfo"></div>
       <div class="small muted" id="syncLine" hidden></div>
       <div class="modes" id="modes">
-        <button data-mode="de_fr" aria-pressed="false">Deutsch → Französisch <span class="n"></span></button>
-        <button data-mode="fr_de" aria-pressed="false">Französisch → Deutsch <span class="n"></span></button>
-        <button data-mode="ipa_fr" aria-pressed="false">Lautschrift → Französisch <span class="n"></span></button>
-        <button data-mode="sent_de_fr" aria-pressed="false">Sätze: Deutsch → Französisch <span class="n"></span></button>
-        <button data-mode="sent_fr_de" aria-pressed="false">Sätze: Französisch → Deutsch <span class="n"></span></button>
+        <button data-mode="de_fr" aria-pressed="false"><span class="t">Deutsch → Französisch</span> <span class="n"></span></button>
+        <button data-mode="fr_de" aria-pressed="false"><span class="t">Französisch → Deutsch</span> <span class="n"></span></button>
+        <button data-mode="ipa_fr" aria-pressed="false"><span class="t">Lautschrift → Französisch</span> <span class="n"></span></button>
+        <button data-mode="sent_de_fr" aria-pressed="false"><span class="t">Sätze: Deutsch → Französisch</span> <span class="n"></span></button>
+        <button data-mode="sent_fr_de" aria-pressed="false"><span class="t">Sätze: Französisch → Deutsch</span> <span class="n"></span></button>
         <button data-mode="errors" aria-pressed="false" class="warn">Fehlerliste <span class="n"></span></button>
         <button data-mode="review" aria-pressed="false">Wiederholung fällig <span class="n"></span></button>
       </div>
@@ -147,7 +147,7 @@
       <div class="progress"><i id="qBar"></i></div>
       <div class="tip" id="tipBox" hidden><span class="eyebrow">Tipp <span id="tipNo"></span></span><b id="tipTitle"></b><div class="small muted" id="tipWhy"></div></div>
       <div class="prompt-label" id="qLabel"></div>
-      <div class="prompt" id="qPrompt"></div>
+      <div class="row" style="align-items:baseline;gap:8px"><div class="prompt" id="qPrompt"></div><button class="ghost small" id="btnSayPrompt" type="button" hidden aria-label="Anhören">🔊</button></div>
       <div class="small muted" id="qHint" hidden></div>
 
       <div id="typeBox">
@@ -189,7 +189,7 @@
 
     <div class="card" id="setList" hidden>
       <h2 id="setListTitle"></h2>
-      <table><thead><tr><th>Französisch</th><th>Deutsch</th><th>Stand</th></tr></thead><tbody id="setListBody"></tbody></table>
+      <table><thead><tr><th class="th-lang">Französisch</th><th>Deutsch</th><th>Stand</th></tr></thead><tbody id="setListBody"></tbody></table>
     </div>
   </section>
 
@@ -202,7 +202,7 @@
       </div>
       <div class="small muted" style="margin-top:6px" id="cahierCount"></div>
       <table style="margin-top:8px">
-        <thead><tr><th>Französisch</th><th>Deutsch</th><th>Beispiele</th><th>Stand</th></tr></thead>
+        <thead><tr><th class="th-lang">Französisch</th><th>Deutsch</th><th>Beispiele</th><th>Stand</th></tr></thead>
         <tbody id="cahierBody"></tbody>
       </table>
     </div>
@@ -217,11 +217,11 @@
     </div>
     <div class="card">
       <h2>Vor dem Vokabeltest</h2>
-      <p style="margin:0">Gehe die Fehlerliste der aktuellen Unité durch, nicht die ganze Liste. Keine Nachtschicht am Vorabend: Die täglichen Minuten der letzten Wochen sind deine Vorbereitung.</p>
+      <p style="margin:0" id="tipTest">Gehe die Fehlerliste der aktuellen Unité durch, nicht die ganze Liste. Keine Nachtschicht am Vorabend: Die täglichen Minuten der letzten Wochen sind deine Vorbereitung.</p>
     </div>
     <div class="card">
       <h2>Kurzfassung für den Schreibtisch</h2>
-      <p style="margin:0">Jeden Tag kurz. Erst wiederholen, dann Neues. Erst antworten, dann aufdecken. Deutsch → Französisch tippen. Satz laut lesen. Nichts selbst aussortieren.</p>
+      <p style="margin:0" id="tipShort">Jeden Tag kurz. Erst wiederholen, dann Neues. Erst antworten, dann aufdecken. Deutsch → Französisch tippen. Satz laut lesen. Nichts selbst aussortieren.</p>
     </div>
     <div class="card">
       <h2>Woher kommen diese Regeln?</h2>
@@ -254,11 +254,11 @@
         <label for="daySize">Wörter pro Lerntag (Ziel)</label>
         <input type="number" id="daySize" min="5" max="20" value="9" style="width:80px;font-size:1rem;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)">
       </div>
-      <p class="small muted" style="margin:8px 0 0">Ein Abschnitt wird in gleich große Lerntage geteilt, möglichst 8–10 Wörter. Bei „alle Abschnitte“ gilt die Lerntag-Einteilung aus der Masterliste.</p>
+      <p class="small muted" style="margin:8px 0 0" id="dayInfo">Ein Abschnitt wird in gleich große Lerntage geteilt, möglichst 8–10 Wörter. Bei „alle Abschnitte“ gilt die Lerntag-Einteilung aus der Masterliste.</p>
     </div>
     <div class="card">
       <h2>Wiederholung</h2>
-      <p class="small muted" style="margin:0">Jede richtige Antwort hebt die Karte eine Stufe: 0 → sofort, 1 → 1 Tag, 2 → 3 Tage, 3 → 7, 4 → 14, 5 → 30 Tage. Ein Fehler setzt sie auf 0 und auf die Fehlerliste. „Wiederholung fällig“ zeigt alle Karten, deren Frist abgelaufen ist – über alle Unités.</p>
+      <p class="small muted" style="margin:0" id="reviewInfo">Jede richtige Antwort hebt die Karte eine Stufe: 0 → sofort, 1 → 1 Tag, 2 → 3 Tage, 3 → 7, 4 → 14, 5 → 30 Tage. Ein Fehler setzt sie auf 0 und auf die Fehlerliste. „Wiederholung fällig“ zeigt alle Karten, deren Frist abgelaufen ist – über alle Unités.</p>
     </div>
     <div class="card">
       <h2>Daten</h2>
@@ -300,7 +300,7 @@
     </div>
   </section>
 </main>
-<footer>Daten aus <code>vocab.json</code> (<span id="srcLabel"></span>). Lautschrift ist Standard-IPA als Lernhilfe.</footer>
+<footer>Daten aus <code id="srcFile">vocab.json</code> (<span id="srcLabel"></span>). <span id="ipaNote">Lautschrift ist Standard-IPA als Lernhilfe.</span> · <a id="langLink" href="?lang=en" style="color:inherit">English (Access 1)</a></footer>
 
 <script>
 'use strict';
@@ -309,12 +309,32 @@
    Lerneinheit (Unité → Abschnitt → Lerntag) wählen, Richtung wählen,
    Runde durcharbeiten. Lernstand in localStorage. Keine Abhängigkeiten.
    ===================================================================== */
+/* ---------- Sprache: Französisch (Standard) oder Englisch (?lang=en bzw. /en/) ----------
+   Intern heißen die Felder weiter fr/fr_accept/example_fr; beim Laden werden englische Einträge
+   (en/en_accept/example_en) darauf abgebildet. So bleibt der Code für beide Sprachen derselbe. */
+const LANG = (new URLSearchParams(location.search).get('lang') === 'en' || /\/en(\/|\/index\.html)?$/.test(location.pathname)) ? 'en' : 'fr';
+const CFG = LANG === 'en' ? {
+  name: 'Englisch', adj: 'englische', into: 'ins Englische', bcp47: 'en-GB', vocabUrl: /\/en\/(index\.html)?$/.test(location.pathname) ? 'vocab.json' : 'en/vocab.json',
+  title: 'Words are magic · Englisch', unitLabel: u => u === 0 ? 'Welcome' : `Unit ${u}`, unitShort: u => u === 0 ? 'Welcome' : `U${u}`, unitWord: 'Unit',
+  sectionRank: { 'Welcome': 0, 'Einstieg': 1, 'Part A': 2, 'Part B': 3, 'Part C': 4, 'Story': 5, 'Unit 4': 6 },
+  ls: 'wam-en:', accents: [], speech: true, articleRule: false, search: 'Suchen … (en, de)',
+  ipaHint: 'Bei Verben reicht das Wort ohne „to“.', ipaNote: 'Lautschrift aus dem Access-Vokabelverzeichnis (britisches Englisch).',
+  dayInfo: 'Ein Abschnitt wird in gleich große Lerntage geteilt, möglichst 8–10 Wörter. Bei „alle Abschnitte“ gilt die Einteilung der Wortliste (8 Wörter je Lerntag).',
+  langLink: ['./', 'Französisch (À plus!)'],
+} : {
+  name: 'Französisch', adj: 'französische', into: 'ins Französische', bcp47: 'fr-FR', vocabUrl: 'vocab.json',
+  title: 'Words are magic', unitLabel: u => `Unité ${u}`, unitShort: u => `U${u}`, unitWord: 'Unité',
+  sectionRank: { 'Auftaktseite': 0, 'Vocabulaire thématique': 1, 'Volet 1': 2, 'Volet 2': 3 },
+  ls: 'wam:', accents: ['à','â','ç','é','è','ê','ë','î','ï','ô','û','ù','ü','œ','’'], speech: false, articleRule: true, search: 'Suchen … (fr, de)',
+  ipaHint: 'Artikel bzw. „se“ gehören zur Antwort.', ipaNote: 'Lautschrift ist Standard-IPA als Lernhilfe.', dayInfo: null,
+  langLink: ['?lang=en', 'English (Access 1)'],
+};
 const DIRS = {
-  de_fr:  { label: 'Deutsch → Französisch',     typed: true,  word: true },
-  fr_de:  { label: 'Französisch → Deutsch',     typed: false, word: true },
-  ipa_fr: { label: 'Lautschrift → Französisch', typed: true,  word: true },
-  sent_de_fr: { label: 'Satz: Deutsch → Französisch', typed: true,  word: false },
-  sent_fr_de: { label: 'Satz: Französisch → Deutsch', typed: false, word: false },
+  de_fr:  { label: `Deutsch → ${CFG.name}`,     typed: true,  word: true },
+  fr_de:  { label: `${CFG.name} → Deutsch`,     typed: false, word: true },
+  ipa_fr: { label: `Lautschrift → ${CFG.name}`, typed: true,  word: true },
+  sent_de_fr: { label: `Satz: Deutsch → ${CFG.name}`, typed: true,  word: false },
+  sent_fr_de: { label: `Satz: ${CFG.name} → Deutsch`, typed: false, word: false },
 };
 const WORD_DIRS = ['de_fr', 'fr_de', 'ipa_fr'];
 const TIPS = [
@@ -329,16 +349,30 @@ const TIPS = [
   ['Keine Wörter nach Gefühl aussortieren. Die App entscheidet anhand deiner getippten Treffer.', 'Das Gefühl „das kann ich schon“ ist fast immer zu optimistisch. Wer selbst aussortiert, lernt messbar schlechter.'],
   ['Wenn es sich schwer und langsam anfühlt, ist das richtig.', 'In einer Studie glaubten 72 % der Lernenden, die leichtere Methode habe besser funktioniert, obwohl die schwerere deutlich mehr gebracht hat. Das Gefühl täuscht; vertrau dem Plan.'],
 ];
+/* Englisch: dieselben zehn Regeln für Klasse 5, einfacher formuliert; Regel 6 auf englische Schreibung umgestellt */
+const TIPS_EN = [
+  ['Jeden Tag 10 Minuten, auch am Wochenende.', 'Wer jeden Tag ein bisschen übt, behält die Wörter viel länger als jemand, der alles an einem Tag lernt.'],
+  ['Erst die fälligen Wiederholungen, dann neue Wörter.', 'Das Wiederholen ist die eigentliche Arbeit. Neue Wörter kommen danach dran.'],
+  ['Erst selbst antworten, dann aufdecken.', 'Wenn du ein Wort aus deinem Kopf holst, merkt es sich dein Gehirn besser. Nur nochmal lesen bringt wenig.'],
+  ['Am wichtigsten: Deutsch → Englisch mit Tippen.', 'Genau so fragt der Vokabeltest. Wenn es anstrengend ist, lernst du gerade besonders viel.'],
+  ['Englisch → Deutsch ist nur eine schnelle Kontrolle.', 'Ein Wort wiedererkennen ist leichter, als es selbst zu schreiben.'],
+  ['Lautschrift → Englisch zwei- bis dreimal pro Woche üben.', 'Viele englische Wörter schreibt man anders, als man sie spricht: stumme Buchstaben wie in know und write, oder Wörter, die gleich klingen, wie two, too und to. Vom Klang zur Schreibung zu tippen übt genau das.'],
+  ['Hör dir das Wort an (🔊) und sprich es laut nach.', 'Die Karte zeigt dir Wort und Bedeutung. Hören und Sprechen zeigt dir, wie das Wort wirklich klingt und benutzt wird.'],
+  ['Einmal pro Woche: fünf alte Wörter, eigene Sätze.', 'Mit einem Wort selbst einen Satz bauen ist die beste Probe, ob du es wirklich kannst.'],
+  ['Sortiere keine Wörter nach Gefühl aus. Die App entscheidet nach deinen Antworten.', '„Das kann ich schon“ fühlt sich oft richtig an, stimmt aber oft nicht.'],
+  ['Wenn es schwer und langsam geht, ist das gut.', 'In einer Studie dachten fast drei von vier Lernenden, die leichtere Methode sei besser. Die schwerere hat aber mehr gebracht.'],
+];
+if (LANG === 'en') TIPS.splice(0, TIPS.length, ...TIPS_EN);
 function showTip(){
   const i = (settings.tipIdx || 0) % TIPS.length; settings.tipIdx = i + 1; saveSettings();
   $('tipNo').textContent = `${i + 1} von ${TIPS.length}`; $('tipTitle').textContent = TIPS[i][0]; $('tipWhy').textContent = 'Warum: ' + TIPS[i][1];
   $('tipBox').hidden = false;
 }
-const SECTION_RANK = { 'Auftaktseite': 0, 'Vocabulaire thématique': 1, 'Volet 1': 2, 'Volet 2': 3 };
+const SECTION_RANK = CFG.sectionRank;
 const INTERVALS = [0, 1, 3, 7, 14, 30];
 const MAXBOX = INTERVALS.length - 1;
 const MAX_RETRY = 2;
-const LS_STATE = 'wam:state:v2', LS_SETTINGS = 'wam:settings:v2', LS_VOCAB = 'wam:vocab:v1', LS_ROUNDS = 'wam:rounds:v1';
+const LS_STATE = CFG.ls + 'state:v2', LS_SETTINGS = CFG.ls + 'settings:v2', LS_VOCAB = CFG.ls + 'vocab:v1', LS_ROUNDS = CFG.ls + 'rounds:v1';
 
 const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2, '0');
@@ -361,6 +395,19 @@ const saveState = () => saveJSON(LS_STATE, state), saveSettings = () => saveJSON
 function applyTheme(){ const t = settings.theme || 'auto'; if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t); }
 document.querySelectorAll('[data-theme]').forEach(b => b.addEventListener('click', () => { settings.theme = b.dataset.theme; saveSettings(); applyTheme(); }));
 applyTheme();
+/* ---------- Beschriftungen je Sprache ---------- */
+document.title = CFG.title;
+document.querySelectorAll('#modes button[data-mode] .t').forEach(t => { const m = t.parentElement.dataset.mode; if (DIRS[m]) t.textContent = m.startsWith('sent_') ? DIRS[m].label.replace('Satz:', 'Sätze:') : DIRS[m].label; });
+document.querySelectorAll('.th-lang').forEach(th => th.textContent = CFG.name);
+$('filter').placeholder = CFG.search; $('ipaNote').textContent = CFG.ipaNote;
+$('langLink').href = CFG.langLink[0]; $('langLink').textContent = CFG.langLink[1];
+$('srcFile').textContent = CFG.vocabUrl;
+if (CFG.dayInfo) $('dayInfo').textContent = CFG.dayInfo;
+$('reviewInfo').textContent = $('reviewInfo').textContent.replace('Unités', CFG.unitWord + 's');
+if (LANG === 'en'){
+  $('tipTest').textContent = 'Übe die Fehlerliste der aktuellen Unit, nicht die ganze Liste. Lern nicht alles am Abend vorher: Die kurzen Übungen jeden Tag sind deine Vorbereitung.';
+  $('tipShort').textContent = 'Jeden Tag kurz. Erst wiederholen, dann Neues. Erst antworten, dann aufdecken. Deutsch → Englisch tippen. Wort anhören und nachsprechen. Nichts selbst aussortieren.';
+}
 $('tipList').innerHTML = TIPS.map(([t, w]) => `<li><b>${esc(t)}</b><span class="small muted">Warum: ${esc(w)}</span></li>`).join('');
 
 /* ---------- vocab.json ---------- */
@@ -368,9 +415,9 @@ async function loadVocab(){
   $('loadBanner').hidden = true;
   let data = null, origin = '';
   try {
-    const r = await fetch('vocab.json', { cache: 'no-store' });
+    const r = await fetch(CFG.vocabUrl, { cache: 'no-store' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    data = await r.json(); origin = 'vocab.json';
+    data = await r.json(); origin = CFG.vocabUrl;
   } catch (e) {
     const cached = loadJSON(LS_VOCAB);
     if (cached) { data = cached; origin = 'gespeicherte Kopie'; }
@@ -379,7 +426,15 @@ async function loadVocab(){
   setVocab(data, origin);
 }
 function showBanner(kind, html){ const b = $('loadBanner'); b.className = 'banner ' + (kind === 'err' ? 'err' : ''); b.innerHTML = html; b.hidden = false; }
+/* Englische Einträge auf die internen Feldnamen abbilden */
+function adaptVocab(data){
+  if (LANG !== 'en' || !data || !Array.isArray(data.entries)) return data;
+  /* Platzhalter dürfen ausgeschrieben werden: sth. = something, sb. = somebody/someone */
+  const expand = a => /\b(sth|sb)\./.test(a) ? [a, a.replace(/\bsth\./g, 'something').replace(/\bsb\./g, 'somebody'), a.replace(/\bsth\./g, 'something').replace(/\bsb\./g, 'someone')] : [a];
+  return { ...data, entries: data.entries.map(e => e.fr !== undefined ? e : ({ ...e, fr: e.en, fr_accept: [...new Set((e.en_accept || []).flatMap(expand))], example_fr: e.example_en ?? null, example2_fr: e.example2_en ?? null, gender: null })) };
+}
 function setVocab(data, origin){
+  data = adaptVocab(data);
   const err = checkVocab(data);
   if (err) { showBanner('err', 'vocab.json entspricht nicht dem Schema: ' + esc(err)); return; }
   VOCAB = data;
@@ -399,7 +454,8 @@ function checkVocab(d){
   for (const e of d.entries){
     for (const f of ['id','unit','section','order','fr','fr_accept','de','pos','tags','proper_name']) if (e[f] === undefined || e[f] === null) return `Eintrag ${e.id || '?'}: Feld ${f} fehlt`;
     if (ids.has(e.id)) return `ID doppelt: ${e.id}`; ids.add(e.id);
-    if (!Array.isArray(e.fr_accept) || !e.fr_accept.includes(e.fr)) return `${e.id}: fr nicht in fr_accept`;
+    if (!Array.isArray(e.fr_accept) || !e.fr_accept.length) return `${e.id}: Liste der richtigen Antworten fehlt`;
+    if (LANG === 'fr' && !e.fr_accept.includes(e.fr)) return `${e.id}: fr nicht in fr_accept`;
   }
   return null;
 }
@@ -434,7 +490,7 @@ function fill(sel, opts, value){
 }
 function initPicker(){
   const units = unitsList();
-  fill($('selUnit'), units.map(u => ({ value: u, label: `Unité ${u} · ${ENTRIES.filter(e => e.unit === u).length} Wörter` })), settings.unit ?? units[0]);
+  fill($('selUnit'), units.map(u => ({ value: u, label: `${CFG.unitLabel(u)} · ${ENTRIES.filter(e => e.unit === u).length} Wörter` })), settings.unit ?? units[0]);
   settings.unit = +$('selUnit').value;
   fillSections(); fillDays(); onScopeChange(false);
 }
@@ -460,7 +516,7 @@ function onScopeChange(userAction){
   saveSettings();
   if (userAction) stopRound();
   const set = currentSet();
-  $('eyebrow').textContent = `Französisch · Unité ${settings.unit} · ${settings.section === 'all' ? 'alle Abschnitte' : settings.section} · Lerntag ${settings.day}`;
+  $('eyebrow').textContent = `${CFG.name} · ${CFG.unitLabel(settings.unit)} · ${settings.section === 'all' ? 'alle Abschnitte' : settings.section} · Lerntag ${settings.day}`;
   $('subline').textContent = `${set.length} Wörter in diesem Lerntag · ${scopeEntries(settings.unit, settings.section).length} im Abschnitt`;
   $('scopeInfo').textContent = 'Die Auswahl gilt für alle Übungen. Ein Wechsel beendet die laufende Runde; der Lernstand bleibt erhalten.';
   renderModes(); renderRing(); renderSetList();
@@ -469,7 +525,7 @@ function onScopeChange(userAction){
 /* ---------- Lernstand je Karte (Leitner) ---------- */
 const cardKey = (id, dir) => id + '|' + dir;
 function getCard(id, dir){ const k = cardKey(id, dir); if (!state.cards[k]) state.cards[k] = { box: 0, due: todayStr(), seen: 0, right: 0, wrong: 0, near: 0, last: null }; return state.cards[k]; }
-function dirApplies(e, dir){ if (dir === 'ipa_fr') return !!e.ipa && !e.proper_name; return true; }
+function dirApplies(e, dir){ if (dir === 'ipa_fr') return !!e.ipa && !e.proper_name && e.ipa_full !== false; return true; }
 function grade(card, result){
   card.seen++;
   if (result === 'ok'){ card.right++; card.box = Math.min(MAXBOX, card.box + 1); }
@@ -539,17 +595,34 @@ function renderSetList(){
 const ARTICLES = /^((le|la|les|un|une|des)\s+|l')/i;
 function norm(s, { accents = true } = {}){
   let x = String(s).trim().toLowerCase().replace(/[’‘ʼ`´]/g, "'").replace(/\s*'\s*/g, "'").replace(/\s+/g, ' ').replace(/\s*-\s*/g, '-').replace(/\s*([?!:;,])\s*/g, '$1').replace(/[.!?]+$/, '');
+  if (LANG === 'en') x = expandEn(x);
   if (!accents){ x = x.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/ç/g, 'c'); }
   return x;
 }
+/* Englisch: Großbuchstaben der Lösung (Monday, I, English) müssen stimmen, sonst „fast richtig“.
+   Großschreibung, die die Lösung nicht hat („See“ statt „see“), ist kein Fehler. */
+/* Englisch: Kurz- und Langformen gelten als gleich (there's = there is, isn't = is not, I'm = I am) */
+const EN_CONTR = [[/\bcan't\b/g, 'cannot'], [/\bwon't\b/g, 'will not'], [/\bshan't\b/g, 'shall not'], [/\b(\w+)n't\b/g, '$1 not'], [/\bcannot\b/g, 'can not'],
+  [/\bi'm\b/g, 'i am'], [/\b(you|we|they)'re\b/g, '$1 are'], [/\b(it|that|there|here|what|where|who|he|she)'s\b/g, '$1 is'],
+  [/\b(i|you|we|they)'ve\b/g, '$1 have'], [/\b(i|you|he|she|it|we|they)'ll\b/g, '$1 will'], [/\b(i|you|he|she|we|they)'d\b/g, '$1 would']];
+function expandEn(x){ for (const [re, to] of EN_CONTR) x = x.replace(re, to); return x; }
+const keepCase = s => String(s).trim().replace(/[’‘ʼ`´]/g, "'").replace(/\s*'\s*/g, "'").replace(/\s+/g, ' ').replace(/\s*-\s*/g, '-').replace(/\s*([?!:;,])\s*/g, '$1').replace(/[.!?]+$/, '');
+function caseOK(target, given){
+  const t = keepCase(target), g = keepCase(given);
+  if (t.length !== g.length) return true;
+  for (let i = 0; i < t.length; i++) if (t[i] !== t[i].toLowerCase() && g[i] !== t[i]) return false;
+  return true;
+}
 function compareWord(input, entry){
   const given = input.trim();
-  if (!given) return { result: 'bad', why: 'Keine Eingabe.', target: entry.fr };
+  if (!given) return { result: 'bad', why: 'Keine Eingabe.', target: entry.fr_accept[0] };
   const acc = entry.fr_accept;
-  if (acc.some(a => norm(a) === norm(given))) return { result: 'ok', why: 'Richtig.' };
+  const hit = acc.find(a => norm(a) === norm(given));
+  if (hit && LANG === 'en' && !caseOK(hit, given)) return { result: 'near', why: 'Fast richtig – auf die Großschreibung achten.', target: hit };
+  if (hit) return { result: 'ok', why: 'Richtig.' };
   const near = acc.find(a => norm(a, {accents:false}) === norm(given, {accents:false}));
   if (near) return { result: 'near', why: 'Fast richtig – Akzente oder Schreibweise prüfen.', target: near };
-  if (entry.pos === 'noun'){
+  if (CFG.articleRule && entry.pos === 'noun'){
     const strip = s => norm(s, {accents:false}).replace(ARTICLES, '').replace(/\s*\((m|f)\)$/, '');
     if (acc.some(a => strip(a) === strip(given))) return { result: 'bad', why: 'Artikel fehlt oder ist falsch – das zählt als Fehler.', target: acc[0] };
   }
@@ -558,7 +631,10 @@ function compareWord(input, entry){
 function compareSentence(input, target){
   const given = input.trim();
   if (!given) return { result: 'bad', why: 'Keine Eingabe.', target };
-  if (norm(given) === norm(target)) return { result: 'ok', why: 'Genau wie die Musterlösung.' };
+  if (norm(given) === norm(target)){
+    if (LANG === 'en' && !caseOK(target, given)) return { result: 'near', why: 'Fast – auf die Großschreibung achten.', target };
+    return { result: 'ok', why: 'Genau wie die Musterlösung.' };
+  }
   if (norm(given, {accents:false}) === norm(target, {accents:false})) return { result: 'near', why: 'Fast – Akzente oder Zeichensetzung prüfen.', target };
   return { result: 'bad', why: 'Weicht von der Musterlösung ab. Vergleiche Bedeutung, Verbformen und Schreibweise.', target };
 }
@@ -599,21 +675,35 @@ function nextCard(){
   $('qCounter').textContent = `Aufgabe ${roundStats.n + 1} · noch ${left}` + (cur.retry ? ' · Wiederholung' : '');
   $('qRight').textContent = `${roundStats.ok} richtig`;
   $('qBar').style.width = (100 * roundStats.n / (roundStats.n + left + 1)) + '%';
-  const sec = `U${e.unit} · ${esc(e.section)}`;
+  const sec = `${CFG.unitShort(e.unit)} · ${esc(e.section)}`;
   const p = $('qPrompt'); p.className = 'prompt'; $('qHint').hidden = true;
-  if (dir === 'de_fr'){ $('qLabel').innerHTML = 'Schreibe das französische Wort · ' + sec; p.textContent = e.de; if (e.pos === 'noun'){ $('qHint').textContent = 'Der Artikel gehört zur Antwort.'; $('qHint').hidden = false; } }
+  $('btnSayPrompt').hidden = !(CFG.speech && dir === 'ipa_fr');
+  if (dir === 'de_fr'){ $('qLabel').innerHTML = `Schreibe das ${CFG.adj} Wort · ` + sec; p.textContent = e.de; if (CFG.articleRule && e.pos === 'noun'){ $('qHint').textContent = 'Der Artikel gehört zur Antwort.'; $('qHint').hidden = false; } }
   else if (dir === 'fr_de'){ $('qLabel').innerHTML = 'Was heißt das? · ' + sec; p.textContent = e.fr; }
-  else if (dir === 'ipa_fr'){ $('qLabel').innerHTML = 'Lies die Laute, schreibe das Wort · ' + sec; p.className = 'prompt ipa'; p.textContent = '[' + e.ipa + ']'; $('qHint').textContent = 'Artikel bzw. „se“ gehören zur Antwort.'; $('qHint').hidden = false; }
-  else if (dir === 'sent_de_fr'){ $('qLabel').innerHTML = 'Übersetze ins Französische · ' + esc(e.fr); p.className = 'prompt sentence'; p.textContent = cur.de; }
+  else if (dir === 'ipa_fr'){ $('qLabel').innerHTML = 'Lies die Laute, schreibe das Wort · ' + sec; p.className = 'prompt ipa'; p.textContent = '[' + e.ipa + ']'; $('qHint').textContent = CFG.ipaHint; $('qHint').hidden = false; }
+  else if (dir === 'sent_de_fr'){ $('qLabel').innerHTML = `Übersetze ${CFG.into} · ` + esc(e.fr); p.className = 'prompt sentence'; p.textContent = cur.de; }
   else { $('qLabel').innerHTML = 'Übersetze ins Deutsche · ' + esc(e.fr); p.className = 'prompt sentence'; p.textContent = cur.fr; }
   $('verdict').hidden = true; $('reveal').hidden = true; $('judgeRow').hidden = true; $('nextRow').hidden = true;
-  if (d.typed){ $('typeBox').hidden = false; $('revealBox').hidden = true; $('answer').value = ''; $('answer').disabled = false; $('answer').placeholder = d.word ? 'Auf Französisch eintippen …' : 'Deine Übersetzung …'; setTimeout(() => $('answer').focus(), 30); }
+  if (d.typed){ $('typeBox').hidden = false; $('revealBox').hidden = true; $('answer').value = ''; $('answer').disabled = false; $('answer').placeholder = d.word ? `Auf ${CFG.name} eintippen …` : 'Deine Übersetzung …'; setTimeout(() => $('answer').focus(), 30); }
   else { $('typeBox').hidden = true; $('revealBox').hidden = false; }
 }
+/* Vorlesen über die Sprachausgabe des Browsers (nur Englisch eingeschaltet) */
+const sayBtn = text => CFG.speech && 'speechSynthesis' in window ? ` <button class="ghost small" type="button" data-say="${esc(text)}" aria-label="Anhören">🔊</button>` : '';
+const sayText = e => (e.fr_accept[0] || e.fr).replace(/\b(sth|sb)\./g, 'something').replace(/…|\.\.\./g, '').trim();
+function speak(text){
+  if (!('speechSynthesis' in window) || !text) return;
+  const u = new SpeechSynthesisUtterance(text); u.lang = CFG.bcp47; u.rate = 0.9;
+  const v = speechSynthesis.getVoices().find(v => v.lang === CFG.bcp47) || speechSynthesis.getVoices().find(v => v.lang && v.lang.startsWith(CFG.bcp47.slice(0, 2)));
+  if (v) u.voice = v;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+document.addEventListener('click', ev => { const b = ev.target.closest('[data-say]'); if (b){ ev.preventDefault(); speak(b.dataset.say); } });
+$('btnSayPrompt').addEventListener('click', () => { if (cur) speak(sayText(cur.e)); });
 function renderReveal(e, sentence){
-  const exOne = (f, d) => f ? `<div class="ex">${esc(f)}<div class="d">${esc(d || '')}</div></div>` : '';
-  if (sentence) $('reveal').innerHTML = `<div class="ex"><b>${esc(sentence.fr)}</b><div class="d">${esc(sentence.de)}</div></div><div class="small muted" style="margin-top:8px">Wort: <b>${esc(e.fr)}</b> – ${esc(e.de)}</div>`;
-  else $('reveal').innerHTML = `<div><span class="fr">${esc(e.fr)}</span>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}</div><div>${esc(e.de)}</div>${exOne(e.example_fr, e.example_de)}${exOne(e.example2_fr, e.example2_de)}`;
+  const exOne = (f, d) => f ? `<div class="ex">${esc(f)}${sayBtn(f)}<div class="d">${esc(d || '')}</div></div>` : '';
+  const note = e.note ? `<div class="small muted" style="margin-top:6px">💡 ${esc(e.note)}</div>` : '';
+  if (sentence) $('reveal').innerHTML = `<div class="ex"><b>${esc(sentence.fr)}</b>${sayBtn(sentence.fr)}<div class="d">${esc(sentence.de)}</div></div><div class="small muted" style="margin-top:8px">Wort: <b>${esc(e.fr)}</b> – ${esc(e.de)}</div>`;
+  else $('reveal').innerHTML = `<div><span class="fr">${esc(e.fr)}</span>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}${sayBtn(sayText(e))}</div><div>${esc(e.de)}</div>${note}${exOne(e.example_fr, e.example_de)}${exOne(e.example2_fr, e.example2_de)}`;
   $('reveal').hidden = false;
 }
 function record(result){
@@ -671,8 +761,8 @@ document.addEventListener('keydown', ev => {
   if (phase === 'judge' && ev.key === '2') judge(true);
 });
 (function(){
-  const chars = ['à','â','ç','é','è','ê','ë','î','ï','ô','û','ù','ü','œ','’'];
-  const box = $('accents');
+  const chars = CFG.accents;
+  const box = $('accents'); box.hidden = !chars.length;
   chars.forEach(ch => {
     const b = document.createElement('button'); b.type = 'button'; const ins = ch === '’' ? "'" : ch; b.textContent = ins;
     b.addEventListener('mousedown', ev => ev.preventDefault());
@@ -692,7 +782,7 @@ function renderCahier(){
     n++;
     const boxes = WORD_DIRS.filter(d => dirApplies(e, d)).map(d => { const c = state.cards[cardKey(e.id, d)]; return c && c.seen ? `<span class="box b${c.box}" title="${esc(DIRS[d].label)} · fällig ${esc(c.due)}">${c.box}</span>` : ''; }).join(' ');
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td><b>${esc(e.fr)}</b>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}<span class="small muted" style="display:block">U${e.unit} · ${esc(e.section)}</span></td>
+    tr.innerHTML = `<td><b>${esc(e.fr)}</b>${e.ipa && !e.proper_name ? `<span class="ipa">[${esc(e.ipa)}]</span>` : ''}<span class="small muted" style="display:block">${CFG.unitShort(e.unit)} · ${esc(e.section)}</span></td>
       <td>${esc(e.de)}</td>
       <td class="small">${esc(e.example_fr || '')}${e.example_de ? `<br><span class="muted">${esc(e.example_de)}</span>` : ''}${e.example2_fr ? `<br>${esc(e.example2_fr)}<br><span class="muted">${esc(e.example2_de || '')}</span>` : ''}</td>
       <td>${boxes || '<span class="small muted">–</span>'}${isError(e) ? '<span class="chip err">Fehler</span>' : ''}</td>`;
@@ -705,7 +795,7 @@ $('filter').addEventListener('input', renderCahier); $('onlyErrors').addEventLis
 /* ---------- Lernstand sichern ---------- */
 $('btnExport').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify({ exported: new Date().toISOString(), vocabVersion: VOCAB?.version, state, rounds, settings }, null, 1)], { type: 'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `words-are-magic-lernstand-${todayStr()}.json`; a.click(); URL.revokeObjectURL(a.href);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `words-are-magic-${LANG === 'en' ? 'englisch-' : ''}lernstand-${todayStr()}.json`; a.click(); URL.revokeObjectURL(a.href);
 });
 $('fileState').addEventListener('change', async ev => {
   const f = ev.target.files[0]; if (!f) return;
@@ -720,7 +810,7 @@ $('btnReset').addEventListener('click', () => { if (!confirm('Wirklich den gesam
 
 /* ---------- Abgleich (Netlify-Funktion /api/state) ---------- */
 const SYNC_URL = '/api/state';
-const LS_SYNC = 'wam:sync:v1';
+const LS_SYNC = CFG.ls + 'sync:v1';
 let sync = Object.assign({ key: '', available: null, lastPush: null, lastPull: null }, loadJSON(LS_SYNC) || {});
 const saveSync = () => saveJSON(LS_SYNC, { key: sync.key, lastPush: sync.lastPush, lastPull: sync.lastPull });
 function genKey(){ const a = new Uint8Array(24); crypto.getRandomValues(a); return [...a].map(b => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join('').replace(/(.{6})(?=.)/g, '$1-'); }

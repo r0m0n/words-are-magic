@@ -3,6 +3,7 @@
 
 Aufruf:
     python validate_vocab.py vocab.json
+    python validate_vocab.py en/vocab.json     (Englisch; erkannt am Kopf "lang": "en-…")
     python validate_vocab.py vocab.json --strict   (Warnungen zählen als Fehler)
 
 Exit-Code 0 = sauber, 1 = Fehler gefunden, 2 = Datei nicht lesbar.
@@ -71,6 +72,10 @@ def main(argv: list[str]) -> int:
     entries = data.get("entries")
     if not isinstance(entries, list):
         errors.append("entries fehlt oder ist keine Liste")
+        return report(errors, warnings, strict)
+    if str(data.get("lang", "")).startswith("en"):
+        validate_en(entries, errors, warnings)
+        print(f"{path}: {len(entries)} Einträge (Englisch), Version {data.get('version')!r}")
         return report(errors, warnings, strict)
 
     # ---- Einträge ----
@@ -187,6 +192,101 @@ def main(argv: list[str]) -> int:
 
     print(f"{path}: {len(entries)} Einträge, Version {data.get('version')!r}")
     return report(errors, warnings, strict)
+
+
+# ---------------- Englisch (Access 1, Datei en/vocab.json) ----------------
+EN_ID_RE = re.compile(r"^AC1-U(\d)-(\d{3})$")
+EN_POS = POS | {"det"}
+EN_REQUIRED = {
+    "id": str, "unit": int, "section": str, "order": int, "en": str, "en_accept": list, "de": str,
+    "pos": str, "ipa_full": bool, "tags": list, "proper_name": bool, "day": int,
+}
+EN_OPTIONAL = {
+    "page": int, "gender_de": str, "ipa": str, "ipa_source": str, "note": str, "editorial": str,
+    "example_en": str, "example_de": str, "example2_en": str, "example2_de": str, "book_en": str,
+}
+
+
+def _stem_hit(sentence: str, accept: list[str]) -> bool:
+    """Kommt das Zielwort (auch gebeugt) im Satz vor? Grobe Prüfung über die ersten 4 Buchstaben."""
+    low = sentence.lower().replace("’", "'")
+    for a in accept:
+        words = [w for w in re.findall(r"[a-z']+", a.lower()) if w not in {"to", "a", "an", "the", "sth", "sb"}]
+        if not words:
+            continue
+        key = max(words, key=len)
+        if key[: max(3, min(4, len(key)))] in low:
+            return True
+    return False
+
+
+def validate_en(entries: list, errors: list[str], warnings: list[str]) -> None:
+    ids, orders = Counter(), defaultdict(Counter)
+    for i, e in enumerate(entries):
+        where = e.get("id") if isinstance(e, dict) and e.get("id") else f"entries[{i}]"
+        if not isinstance(e, dict):
+            errors.append(f"{where}: kein Objekt"); continue
+        for f, t in EN_REQUIRED.items():
+            if f not in e:
+                errors.append(f"{where}: Pflichtfeld {f} fehlt")
+            elif not isinstance(e[f], t) or (t is int and isinstance(e[f], bool)):
+                errors.append(f"{where}: {f} hat Typ {type(e[f]).__name__}, erwartet {t.__name__}")
+        for f, t in EN_OPTIONAL.items():
+            if e.get(f) is not None and not isinstance(e[f], t):
+                errors.append(f"{where}: {f} hat Typ {type(e[f]).__name__}, erwartet {t.__name__} oder null")
+        for f in e:
+            if f not in EN_REQUIRED and f not in EN_OPTIONAL:
+                warnings.append(f"{where}: unbekanntes Feld {f}")
+        for f, v in e.items():
+            if isinstance(v, str) and not v.strip():
+                errors.append(f"{where}: {f} ist leerer String (null verwenden)")
+            if isinstance(v, list) and any(not isinstance(x, str) or not x.strip() for x in v):
+                errors.append(f"{where}: {f} enthält leere Werte")
+        eid = e.get("id")
+        if isinstance(eid, str):
+            ids[eid] += 1
+            m = EN_ID_RE.match(eid)
+            if not m:
+                errors.append(f"{where}: id passt nicht auf AC1-U<n>-<nnn>")
+            elif isinstance(e.get("unit"), int) and int(m.group(1)) != e["unit"]:
+                errors.append(f"{where}: id-Unit {m.group(1)} ≠ unit {e['unit']}")
+        if isinstance(e.get("unit"), int) and isinstance(e.get("order"), int):
+            orders[e["unit"]][e["order"]] += 1
+        acc = e.get("en_accept")
+        if isinstance(acc, list):
+            if not acc:
+                errors.append(f"{where}: en_accept ist leer")
+            if len(set(acc)) != len(acc):
+                warnings.append(f"{where}: en_accept enthält Dubletten")
+        pos = e.get("pos")
+        if isinstance(pos, str) and pos not in EN_POS:
+            errors.append(f"{where}: pos {pos!r} unbekannt")
+        g = e.get("gender_de")
+        if g is not None and g not in {"m", "f", "n"}:
+            errors.append(f"{where}: gender_de {g!r} ungültig (m/f/n/null)")
+        if g is not None and pos != "noun":
+            errors.append(f"{where}: gender_de nur bei noun")
+        ipa = e.get("ipa")
+        if isinstance(ipa, str) and IPA_SUSPECT.search(ipa):
+            errors.append(f"{where}: ipa enthält Schrägstriche/Klammern: {ipa!r}")
+        if (ipa is None) != (e.get("ipa_source") is None):
+            errors.append(f"{where}: ipa und ipa_source müssen beide gesetzt oder beide null sein")
+        if ipa is None and e.get("ipa_full"):
+            errors.append(f"{where}: ipa_full=true ohne ipa")
+        for a, b in (("example_en", "example_de"), ("example2_en", "example2_de")):
+            if (e.get(a) is None) != (e.get(b) is None):
+                errors.append(f"{where}: {a}/{b} nur einseitig gesetzt")
+            if isinstance(e.get(a), str) and isinstance(acc, list) and not _stem_hit(e[a], acc):
+                warnings.append(f"{where}: Zielwort nicht in {a} gefunden: {e[a]!r}")
+            if isinstance(e.get(a), str) and len(e[a].split()) > 12:
+                warnings.append(f"{where}: {a} länger als 12 Wörter")
+    for eid, n in ids.items():
+        if n > 1:
+            errors.append(f"id {eid} kommt {n}× vor")
+    for unit, cnt in orders.items():
+        for o, n in cnt.items():
+            if n > 1:
+                errors.append(f"Unit {unit}: order {o} kommt {n}× vor")
 
 
 def report(errors: list[str], warnings: list[str], strict: bool) -> int:
